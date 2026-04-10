@@ -4,27 +4,35 @@ Central repository for LLM and agent configuration, reusable skills, prompts, an
 
 ## Installation
 
-Run the setup script to symlink agents and skills into your VS Code user-level directories so they work across all workspaces:
+Run the setup script to install agents and skills either into your VS Code user-level directories or into a project's `.github` directory.
 
 ```bash
-./setup.sh            # symlink (default — tracks repo changes automatically)
-./setup.sh --copy     # copy instead of symlink
+./setup.sh                          # symlink user-level install (default)
+./setup.sh --copy                   # copy user-level install
+./setup.sh --project /path/to/repo  # symlink project install into .github/
+./setup.sh --project /path/to/repo --copy
 ```
 
-This installs:
+User install targets:
 - **Agents** → `~/.config/Code/User/prompts/*.agent.md`
 - **Skills** → `~/.copilot/skills/<name>/SKILL.md`
+
+Project install targets:
+- **Agents** → `<project>/.github/agents/*.agent.md`
+- **Skills** → `<project>/.github/skills/<name>/SKILL.md`
+- **Instructions** → `<project>/.github/copilot-instructions.md` (generated as a normal file, not a symlink)
 
 Restart VS Code or reload the window after running.
 
 ### Per-project usage
 
-To use in a single project instead, symlink or copy into that project's `.github/` directory:
+To install into a single project with the script:
 
 ```bash
-ln -s /path/to/llm-config/agents/*.agent.md  your-project/.github/agents/
-ln -s /path/to/llm-config/skills/*           your-project/.github/skills/
+./setup.sh --project /path/to/your-project
 ```
+
+The installer creates `.github/copilot-instructions.md` if it does not already exist, and preserves an existing file so you can keep project-specific guidance there.
 
 ## Structure
 
@@ -44,11 +52,12 @@ ln -s /path/to/llm-config/skills/*           your-project/.github/skills/
 | `course-project-worker` | Course projects end-to-end: spec extraction, Python ML, RL, LaTeX reports |
 | `build-engineer` | Boost.Build (b2/bjam), gcc/clang/nvcc error diagnosis, template errors, compilation speed |
 
-## Skills (14)
+## Skills (15)
 
 | Skill | Domain |
 |-------|--------|
 | `coding` | General implementation, debugging, refactoring |
+| `shell` | Bash, zsh, csh/tcsh scripting, terminal automation, pipelines, portability, and shell debugging |
 | `boost-build` | Boost.Build (b2/bjam), Jamfiles, toolsets, compiler error decoding, compile-time optimization |
 | `cpp-elegance` | Modern C++ clarity, RAII, concepts, API design |
 | `cpp-performance` | C++ hot-path optimization, cache, vectorization |
