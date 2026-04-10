@@ -42,12 +42,14 @@ ln -s /path/to/llm-config/skills/*           your-project/.github/skills/
 | `p4-reviewer` | Perforce changelist review, submission readiness, changelist comments |
 | `performance-engineer` | Runtime performance, profiling, bottleneck analysis, C++/CUDA tuning |
 | `course-project-worker` | Course projects end-to-end: spec extraction, Python ML, RL, LaTeX reports |
+| `build-engineer` | Boost.Build (b2/bjam), gcc/clang/nvcc error diagnosis, template errors, compilation speed |
 
-## Skills (13)
+## Skills (14)
 
 | Skill | Domain |
 |-------|--------|
 | `coding` | General implementation, debugging, refactoring |
+| `boost-build` | Boost.Build (b2/bjam), Jamfiles, toolsets, compiler error decoding, compile-time optimization |
 | `cpp-elegance` | Modern C++ clarity, RAII, concepts, API design |
 | `cpp-performance` | C++ hot-path optimization, cache, vectorization |
 | `cuda-performance` | GPU kernel tuning, shared memory, coalescing |
