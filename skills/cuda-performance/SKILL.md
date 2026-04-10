@@ -1,3 +1,8 @@
+---
+name: cuda-performance
+description: "Use when optimizing CUDA kernels, GPU memory hierarchy, shared memory, coalescing, launch configuration, occupancy, warp divergence, host-device transfers, and end-to-end GPU pipeline."
+---
+
 # CUDA Performance Skill
 
 ## Purpose

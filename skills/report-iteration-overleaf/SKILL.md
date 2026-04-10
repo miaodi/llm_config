@@ -1,3 +1,8 @@
+---
+name: report-iteration-overleaf
+description: "Use when iterating on a course report, reviewing previous submissions, improving LaTeX structure and analysis, or preparing sources for Overleaf upload or Git sync."
+---
+
 # Report Iteration And Overleaf Skill
 
 ## Purpose

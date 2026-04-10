@@ -1,3 +1,8 @@
+---
+name: latex-tikz
+description: "Use when creating LaTeX documents, TikZ figures, PGFPlots, algorithm diagrams, architecture schematics, or report-ready plots for technical writeups."
+---
+
 # LaTeX TikZ Skill
 
 ## Purpose

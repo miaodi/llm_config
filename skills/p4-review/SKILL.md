@@ -1,3 +1,8 @@
+---
+name: p4-review
+description: "Use when reviewing Perforce changelists, shelves, diffs, or generating changelist comments. Covers code review, pre-submit inspection, submission risk, and STARs ID tracking."
+---
+
 # P4 Review Skill
 
 ## Purpose

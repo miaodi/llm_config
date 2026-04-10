@@ -1,3 +1,8 @@
+---
+name: python-ml
+description: "Use when writing Python for machine learning projects, experiment scaffolding, training loops, evaluation, hyperparameter management, and reproducible ML workflows."
+---
+
 # Python ML Skill
 
 ## Purpose

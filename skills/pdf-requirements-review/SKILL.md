@@ -1,3 +1,8 @@
+---
+name: pdf-requirements-review
+description: "Use when reading a PDF project spec, course assignment, rubric, or requirements document to extract deliverables, constraints, and create an execution plan."
+---
+
 # PDF Requirements Review Skill
 
 ## Purpose

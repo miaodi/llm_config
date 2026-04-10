@@ -1,3 +1,8 @@
+---
+name: research
+description: "Use when investigating technical topics, comparing sources, evaluating approaches, performing literature review, or synthesizing findings."
+---
+
 # Research Skill
 
 ## Purpose

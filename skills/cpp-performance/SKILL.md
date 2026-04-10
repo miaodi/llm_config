@@ -1,3 +1,8 @@
+---
+name: cpp-performance
+description: "Use when optimizing C++ runtime performance, hot paths, allocations, cache efficiency, vectorization, branch reduction, parallelization, data-oriented design, and concurrency overhead."
+---
+
 # C++ Performance Skill
 
 ## Purpose

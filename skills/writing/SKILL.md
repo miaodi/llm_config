@@ -1,3 +1,8 @@
+---
+name: writing
+description: "Use when editing, rewriting, summarizing, or normalizing style for documentation, emails, proposals, reports, and copy edits."
+---
+
 # Writing Skill
 
 ## Purpose

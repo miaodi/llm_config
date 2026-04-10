@@ -1,3 +1,8 @@
+---
+name: coding
+description: "Use when implementing, debugging, refactoring, or reviewing code. Covers code changes, defect investigation, and verification."
+---
+
 # Coding Skill
 
 ## Purpose

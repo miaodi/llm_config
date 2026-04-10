@@ -1,3 +1,8 @@
+---
+name: p4-workflow
+description: "Use when working with Perforce changelists, shelves, depot state, stream comparisons, file actions, or preparing code for P4 submission."
+---
+
 # P4 Workflow Skill
 
 ## Purpose

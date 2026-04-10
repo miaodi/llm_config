@@ -1,3 +1,8 @@
+---
+name: cpp-elegance
+description: "Use when writing modern C++ for clarity, expressiveness, type safety, API design, RAII, value semantics, constexpr, concepts, traits, and compile-time design."
+---
+
 # C++ Elegance Skill
 
 ## Purpose

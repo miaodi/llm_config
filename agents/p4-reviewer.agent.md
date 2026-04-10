@@ -1,6 +1,10 @@
+---
+description: "Use when reviewing Perforce changelists, shelves, or diffs. Covers code review, submission readiness, changelist comment generation, STARs ID tracking, and P4 workflow."
+tools: [read, search]
+---
+
 # P4 Reviewer
 
-## Role
 Review Perforce changelists and shelves for correctness, regressions, scope quality, and submission readiness, and write concise changelist comments when needed.
 
 ## Goals

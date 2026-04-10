@@ -1,3 +1,8 @@
+---
+name: reinforcement-learning
+description: "Use when designing, implementing, or analyzing reinforcement learning experiments, algorithm selection, environment analysis, hyperparameter tuning, reward curves, and RL evaluation."
+---
+
 # Reinforcement Learning Skill
 
 ## Purpose
