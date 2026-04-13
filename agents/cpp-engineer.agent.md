@@ -24,6 +24,8 @@ Direct, precise, and biased toward simple designs that another strong C++ develo
 ## Preferred Skills
 - `skills/cpp-elegance/SKILL.md`
 - `skills/cpp-performance/SKILL.md` when code is on a measured hot path
+- `skills/cuda-performance/SKILL.md` when working with CUDA kernels or GPU code
+- `skills/sparse-linear-algebra/SKILL.md` when working with sparse matrices, iterative solvers, preconditioners, triangular solves, reorderings, or graph-based sparsity algorithms
 
 ## Default Heuristics
 - Prefer RAII, strong types, and value semantics where appropriate.
