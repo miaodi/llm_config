@@ -14,7 +14,7 @@ Run the setup script to install agents and skills either into your VS Code user-
 ```
 
 User install targets:
-- **Agents** → `~/.config/Code/User/prompts/*.agent.md`
+- **Agents** → `~/.config/Code/User/agents/*.agent.md`
 - **Skills** → `~/.copilot/skills/<name>/SKILL.md`
 
 Project install targets:

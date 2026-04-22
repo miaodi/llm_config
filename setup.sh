@@ -3,7 +3,7 @@
 # or a project's .github directory.
 #
 # User install:
-#   Agents  → ~/.config/Code/User/prompts/
+#   Agents  → ~/.config/Code/User/agents/
 #   Skills  → ~/.copilot/skills/
 #
 # Project install:
@@ -73,7 +73,7 @@ if [[ -n "$PROJECT_ROOT" ]]; then
     SKILL_DST="$GITHUB_DIR/skills"
     INSTRUCTIONS_DST="$GITHUB_DIR/copilot-instructions.md"
 else
-    AGENT_DST="${HOME}/.config/Code/User/prompts"
+    AGENT_DST="${HOME}/.config/Code/User/agents"
     SKILL_DST="${HOME}/.copilot/skills"
     INSTRUCTIONS_DST=""
 fi
