@@ -15,27 +15,34 @@ Use for general C++ implementation, refactoring, API design, code cleanup, and c
 1. Preserve correctness and invariants.
 2. Make intent obvious in the type system and interfaces.
 3. Prefer simple designs over clever ones.
-4. Do work at compile time when it improves clarity or removes unnecessary runtime cost.
-5. Keep the generated runtime behavior straightforward and predictable.
-6. Use traits, concepts, and compile-time constraints to make generic code explicit and safe when they improve the design.
+4. Keep each function focused on one clear responsibility.
+5. Prefer C++20 language and standard library features when they make the design clearer and the environment supports them.
+6. Do work at compile time when it improves clarity or removes unnecessary runtime cost.
+7. Keep the generated runtime behavior straightforward and predictable.
+8. Use traits, concepts, and compile-time constraints to make generic code explicit and safe when they improve the design.
 
 ## Workflow
 1. Start from the domain model and choose names that reflect intent.
 2. Express invariants in types, constructors, and function signatures.
 3. Prefer value semantics and RAII unless shared or dynamic ownership is necessary.
-4. Prefer compile-time computation with `constexpr`, `consteval`, and `static_assert` when the logic is naturally static and the code remains readable.
-5. Use traits, concepts, and type-level constraints to express intent when generic code is necessary, but keep the metaprogramming surface small.
-6. Prefer standard library facilities and simple composition over custom frameworks or inheritance-heavy designs.
-7. Keep control flow explicit and data ownership easy to trace.
-8. Remove incidental complexity, duplicated logic, and weak abstractions.
-9. Check whether the code is easy to test, reason about, and optimize.
+4. Keep each function narrow in purpose; if it starts mixing validation, transformation, coordination, or side effects, split it into clearer pieces.
+5. Reach for C++20 facilities first when they simplify the code, such as concepts, ranges, `std::span`, `std::string_view`, `constexpr`, and stronger standard-library vocabulary types.
+6. Prefer compile-time computation with `constexpr`, `consteval`, and `static_assert` when the logic is naturally static and the code remains readable.
+7. Use traits, concepts, and type-level constraints to express intent when generic code is necessary, but keep the metaprogramming surface small.
+8. Prefer standard library facilities and simple composition over custom frameworks or inheritance-heavy designs.
+9. Keep control flow explicit and data ownership easy to trace.
+10. Remove incidental complexity, duplicated logic, and weak abstractions.
+11. Check whether the code is easy to test, reason about, and optimize.
 
 ## Review Checklist
 - Do names reflect the actual domain meaning?
 - Are invariants enforced by the type system where practical?
+- Does each function have one clear purpose that matches its name and signature?
+- If this is a header, does it use `#pragma once` unless there is a concrete reason not to?
 - Is ownership explicit and easy to follow?
 - Is RAII used to manage resources safely?
 - Would value semantics simplify the design?
+- Would a C++20 facility express the intent more directly or remove custom boilerplate?
 - Is compile-time evaluation appropriate here?
 - Would `constexpr`, `consteval`, or `static_assert` make the code safer or simpler?
 - Would traits or concepts clarify generic intent, or would they only add indirection?
@@ -47,7 +54,10 @@ Use for general C++ implementation, refactoring, API design, code cleanup, and c
 ## Constraints
 - Do not use templates or metaprogramming only to look advanced.
 - Do not use traits, concepts, or type tricks if simpler code expresses the idea more clearly.
+- Do not default to legacy pre-C++20 patterns when a clearer C++20 approach is available and supported.
 - Do not push logic to compile time if it harms readability, diagnostics, or compile time without a clear benefit.
+- Do not let a single function accumulate unrelated responsibilities when splitting it would make intent clearer.
+- Do not introduce manual include guards by default when `#pragma once` is acceptable for the project.
 - Do not hide ownership, lifetime, or control flow behind weak abstractions.
 - Do not introduce dynamic polymorphism when static structure is sufficient.
 - Prefer small, composable abstractions over large generic frameworks.
