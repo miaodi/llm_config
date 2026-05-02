@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Install llm-config agents and skills into either VS Code user-level directories
-# or a project's .github directory.
+# Install llm-config agents and skills into VS Code user-level directories,
+# a project's .github directory, or Codex user-level directories.
 #
 # User install:
 #   Agents  → ~/.config/Code/User/agents/
@@ -11,11 +11,15 @@
 #   Skills  → <project>/.github/skills/
 #   Instructions → <project>/.github/copilot-instructions.md
 #
+# Codex install:
+#   Agents  → ~/.codex/agents/
+#
 # Usage:
 #   ./setup.sh                          # symlink user-level install
 #   ./setup.sh --copy                   # copy user-level install
 #   ./setup.sh --project /path/to/repo  # symlink project install
 #   ./setup.sh --project /path/to/repo --copy
+#   ./setup.sh --codex                  # symlink Codex user-level agents
 
 set -euo pipefail
 
@@ -23,15 +27,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 MODE="symlink"
 PROJECT_ROOT=""
+TARGET="vscode"
 
 usage() {
     cat <<EOF
 Usage:
-  ./setup.sh [--copy] [--project PATH]
+  ./setup.sh [--copy] [--project PATH|--codex]
 
 Options:
   --copy           Copy files instead of symlinking them.
   --project PATH   Install into PATH/.github instead of user-level directories.
+  --codex          Install Codex-aware agents into ~/.codex/agents.
   --help           Show this help text.
 EOF
 }
@@ -48,8 +54,23 @@ while [[ $# -gt 0 ]]; do
                 usage >&2
                 exit 1
             fi
+            if [[ "$TARGET" == "codex" ]]; then
+                echo "error: --project and --codex cannot be used together" >&2
+                usage >&2
+                exit 1
+            fi
             PROJECT_ROOT="$2"
+            TARGET="project"
             shift 2
+            ;;
+        --codex)
+            if [[ -n "$PROJECT_ROOT" ]]; then
+                echo "error: --project and --codex cannot be used together" >&2
+                usage >&2
+                exit 1
+            fi
+            TARGET="codex"
+            shift
             ;;
         --help|-h)
             usage
@@ -65,13 +86,19 @@ done
 
 AGENT_SRC="$SCRIPT_DIR/agents"
 SKILL_SRC="$SCRIPT_DIR/skills"
+INSTALL_SKILLS=1
 
-if [[ -n "$PROJECT_ROOT" ]]; then
+if [[ "$TARGET" == "project" ]]; then
     PROJECT_ROOT="$(cd "$PROJECT_ROOT" && pwd)"
     GITHUB_DIR="$PROJECT_ROOT/.github"
     AGENT_DST="$GITHUB_DIR/agents"
     SKILL_DST="$GITHUB_DIR/skills"
     INSTRUCTIONS_DST="$GITHUB_DIR/copilot-instructions.md"
+elif [[ "$TARGET" == "codex" ]]; then
+    AGENT_DST="${HOME}/.codex/agents"
+    SKILL_DST=""
+    INSTRUCTIONS_DST=""
+    INSTALL_SKILLS=0
 else
     AGENT_DST="${HOME}/.config/Code/User/agents"
     SKILL_DST="${HOME}/.copilot/skills"
@@ -135,14 +162,16 @@ for f in "$AGENT_SRC"/*.agent.md; do
     echo "  $name"
 done
 
-echo "Installing skills to $SKILL_DST ..."
-mkdir -p "$SKILL_DST"
-for d in "$SKILL_SRC"/*/; do
-    [ -d "$d" ] || continue
-    name="$(basename "$d")"
-    install_dir "$d" "$SKILL_DST/$name"
-    echo "  $name/"
-done
+if [[ "$INSTALL_SKILLS" -eq 1 ]]; then
+    echo "Installing skills to $SKILL_DST ..."
+    mkdir -p "$SKILL_DST"
+    for d in "$SKILL_SRC"/*/; do
+        [ -d "$d" ] || continue
+        name="$(basename "$d")"
+        install_dir "$d" "$SKILL_DST/$name"
+        echo "  $name/"
+    done
+fi
 
 if [[ -n "$INSTRUCTIONS_DST" ]]; then
     echo "Installing project instructions to $INSTRUCTIONS_DST ..."
@@ -152,9 +181,15 @@ fi
 echo ""
 echo "Done ($MODE mode)."
 echo "Agents are in: $AGENT_DST"
-echo "Skills are in: $SKILL_DST"
+if [[ "$INSTALL_SKILLS" -eq 1 ]]; then
+    echo "Skills are in: $SKILL_DST"
+fi
 if [[ -n "$INSTRUCTIONS_DST" ]]; then
     echo "Instructions are in: $INSTRUCTIONS_DST"
 fi
 echo ""
-echo "Restart VS Code or reload the window for changes to take effect."
+if [[ "$TARGET" == "codex" ]]; then
+    echo "Restart Codex for changes to take effect."
+else
+    echo "Restart VS Code or reload the window for changes to take effect."
+fi

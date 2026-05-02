@@ -1,16 +1,18 @@
 # llm-config
 
-Central repository for LLM and agent configuration, reusable skills, prompts, and operating conventions — in VS Code Copilot's native format.
+Central repository for LLM and agent configuration, reusable skills, prompts, and operating conventions.
 
 ## Installation
 
-Run the setup script to install agents and skills either into your VS Code user-level directories or into a project's `.github` directory.
+Run the setup script to install agents and skills into VS Code user-level directories, a project's `.github` directory, or Codex user-level agent directory.
 
 ```bash
 ./setup.sh                          # symlink user-level install (default)
 ./setup.sh --copy                   # copy user-level install
 ./setup.sh --project /path/to/repo  # symlink project install into .github/
 ./setup.sh --project /path/to/repo --copy
+./setup.sh --codex                  # symlink Codex user-level agents
+./setup.sh --codex --copy           # copy Codex user-level agents
 ```
 
 User install targets:
@@ -22,7 +24,10 @@ Project install targets:
 - **Skills** → `<project>/.github/skills/<name>/SKILL.md`
 - **Instructions** → `<project>/.github/copilot-instructions.md` (generated as a normal file, not a symlink)
 
-Restart VS Code or reload the window after running.
+Codex install targets:
+- **Agents** → `~/.codex/agents/*.agent.md`
+
+Restart VS Code or reload the window after running VS Code installs. Restart Codex after running a Codex install.
 
 ### Per-project usage
 
@@ -33,6 +38,16 @@ To install into a single project with the script:
 ```
 
 The installer creates `.github/copilot-instructions.md` if it does not already exist, and preserves an existing file so you can keep project-specific guidance there.
+
+### Codex usage
+
+To install system-level Codex-aware agents:
+
+```bash
+./setup.sh --codex
+```
+
+The Codex install only installs agents. Skills remain managed through Codex's skill/plugin directories.
 
 ## Structure
 
@@ -51,14 +66,16 @@ The installer creates `.github/copilot-instructions.md` if it does not already e
 | `performance-engineer` | Runtime performance, profiling, bottleneck analysis, C++/CUDA tuning |
 | `course-project-worker` | Course projects end-to-end: spec extraction, Python ML, RL, LaTeX reports |
 | `build-engineer` | Boost.Build (b2/bjam), gcc/clang/nvcc error diagnosis, template errors, compilation speed |
+| `cmake-project-builder` | Modern CMake projects, CMakePresets, C++/CUDA build errors, custom CMake functions |
 
-## Skills (15)
+## Skills (16)
 
 | Skill | Domain |
 |-------|--------|
 | `coding` | General implementation, debugging, refactoring |
 | `shell` | Bash, zsh, csh/tcsh scripting, terminal automation, pipelines, portability, and shell debugging |
 | `boost-build` | Boost.Build (b2/bjam), Jamfiles, toolsets, compiler error decoding, compile-time optimization |
+| `modern-cmake` | Modern CMake, target usage requirements, presets, toolchains, C++/CUDA/nvcc build diagnosis |
 | `cpp-elegance` | Modern C++ clarity, RAII, concepts, API design |
 | `cpp-performance` | C++ hot-path optimization, cache, vectorization |
 | `cuda-performance` | GPU kernel tuning, shared memory, coalescing |
