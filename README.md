@@ -4,15 +4,15 @@ Central repository for LLM and agent configuration, reusable skills, prompts, an
 
 ## Installation
 
-Run the setup script to install agents and skills into VS Code user-level directories, a project's `.github` directory, or Codex user-level agent directory.
+Run the setup script to install agents and skills into VS Code user-level directories, a project's `.github` directory, or Codex user-level directories.
 
 ```bash
 ./setup.sh                          # symlink user-level install (default)
 ./setup.sh --copy                   # copy user-level install
 ./setup.sh --project /path/to/repo  # symlink project install into .github/
 ./setup.sh --project /path/to/repo --copy
-./setup.sh --codex                  # symlink Codex user-level agents
-./setup.sh --codex --copy           # copy Codex user-level agents
+./setup.sh --codex                  # symlink Codex user-level agents and skills
+./setup.sh --codex --copy           # copy Codex user-level agents and skills
 ```
 
 User install targets:
@@ -26,6 +26,7 @@ Project install targets:
 
 Codex install targets:
 - **Agents** → `~/.codex/agents/*.agent.md`
+- **Skills** → `~/.codex/skills/<name>/SKILL.md`
 
 Restart VS Code or reload the window after running VS Code installs. Restart Codex after running a Codex install.
 
@@ -41,13 +42,13 @@ The installer creates `.github/copilot-instructions.md` if it does not already e
 
 ### Codex usage
 
-To install system-level Codex-aware agents:
+To install system-level Codex-aware agents and skills:
 
 ```bash
 ./setup.sh --codex
 ```
 
-The Codex install only installs agents. Skills remain managed through Codex's skill/plugin directories.
+The Codex install places this repository's skills under `~/.codex/skills/` so agents can reference the same companion guidance used by VS Code installs.
 
 ## Structure
 
@@ -61,17 +62,20 @@ The Codex install only installs agents. Skills remain managed through Codex's sk
 
 | Agent | Description |
 |-------|-------------|
+| `agent-creator` | Custom agent and skill design for this repository |
 | `cpp-engineer` | Modern C++ design, type safety, ownership, compile-time computation |
+| `document-writer` | Markdown, Confluence, LaTeX, and report editing |
 | `p4-reviewer` | Perforce changelist review, submission readiness, changelist comments |
 | `performance-engineer` | Runtime performance, profiling, bottleneck analysis, C++/CUDA tuning |
 | `course-project-worker` | Course projects end-to-end: spec extraction, Python ML, RL, LaTeX reports |
 | `build-engineer` | Boost.Build (b2/bjam), gcc/clang/nvcc error diagnosis, template errors, compilation speed |
 | `cmake-project-builder` | Modern CMake projects, CMakePresets, C++/CUDA build errors, custom CMake functions |
 
-## Skills (16)
+## Skills (20)
 
 | Skill | Domain |
 |-------|--------|
+| `agent-customization` | Custom agent and skill scope, tools, and delegation wording |
 | `coding` | General implementation, debugging, refactoring |
 | `shell` | Bash, zsh, csh/tcsh scripting, terminal automation, pipelines, portability, and shell debugging |
 | `boost-build` | Boost.Build (b2/bjam), Jamfiles, toolsets, compiler error decoding, compile-time optimization |
@@ -79,10 +83,13 @@ The Codex install only installs agents. Skills remain managed through Codex's sk
 | `cpp-elegance` | Modern C++ clarity, RAII, concepts, API design |
 | `cpp-performance` | C++ hot-path optimization, cache, vectorization |
 | `cuda-performance` | GPU kernel tuning, shared memory, coalescing |
+| `sparse-linear-algebra` | Sparse matrices, iterative solvers, preconditioners, reorderings, graph sparsity |
 | `p4-review` | Perforce code review and changelist comments |
 | `p4-workflow` | Perforce changelist and shelf management |
 | `research` | Technical investigation and synthesis |
 | `writing` | Editing, summarization, style normalization |
+| `markdown-editing` | Markdown documentation, tables, links, and GitHub formatting |
+| `confluence-editing` | Confluence pages, team wiki structure, and macro-aware editing |
 | `latex-tikz` | LaTeX documents and TikZ/PGFPlots figures |
 | `pdf-requirements-review` | PDF spec extraction and project planning |
 | `python-ml` | Python ML experiment scaffolding |

@@ -13,13 +13,14 @@
 #
 # Codex install:
 #   Agents  → ~/.codex/agents/
+#   Skills  → ~/.codex/skills/
 #
 # Usage:
 #   ./setup.sh                          # symlink user-level install
 #   ./setup.sh --copy                   # copy user-level install
 #   ./setup.sh --project /path/to/repo  # symlink project install
 #   ./setup.sh --project /path/to/repo --copy
-#   ./setup.sh --codex                  # symlink Codex user-level agents
+#   ./setup.sh --codex                  # symlink Codex user-level agents and skills
 
 set -euo pipefail
 
@@ -37,7 +38,7 @@ Usage:
 Options:
   --copy           Copy files instead of symlinking them.
   --project PATH   Install into PATH/.github instead of user-level directories.
-  --codex          Install Codex-aware agents into ~/.codex/agents.
+  --codex          Install Codex-aware agents and skills into ~/.codex.
   --help           Show this help text.
 EOF
 }
@@ -96,9 +97,8 @@ if [[ "$TARGET" == "project" ]]; then
     INSTRUCTIONS_DST="$GITHUB_DIR/copilot-instructions.md"
 elif [[ "$TARGET" == "codex" ]]; then
     AGENT_DST="${HOME}/.codex/agents"
-    SKILL_DST=""
+    SKILL_DST="${HOME}/.codex/skills"
     INSTRUCTIONS_DST=""
-    INSTALL_SKILLS=0
 else
     AGENT_DST="${HOME}/.config/Code/User/agents"
     SKILL_DST="${HOME}/.copilot/skills"
