@@ -11,8 +11,8 @@ Run the setup script to install agents and skills into VS Code user-level direct
 ./setup.sh --copy                   # copy user-level install
 ./setup.sh --project /path/to/repo  # symlink project install into .github/
 ./setup.sh --project /path/to/repo --copy
-./setup.sh --codex                  # symlink Codex user-level agents and skills
-./setup.sh --codex --copy           # copy Codex user-level agents and skills
+./setup.sh --codex                  # symlink Codex skills and reference agent specs
+./setup.sh --codex --copy           # copy Codex skills and reference agent specs
 ```
 
 User install targets:
@@ -25,7 +25,7 @@ Project install targets:
 - **Instructions** → `<project>/.github/copilot-instructions.md` (generated as a normal file, not a symlink)
 
 Codex install targets:
-- **Agents** → `~/.codex/agents/*.agent.md`
+- **Agent specs** → `~/.codex/agents/*.agent.md` (reference files; not currently registered as new `spawn_agent` types)
 - **Skills** → `~/.codex/skills/<name>/SKILL.md`
 
 Restart VS Code or reload the window after running VS Code installs. Restart Codex after running a Codex install.
@@ -40,15 +40,17 @@ To install into a single project with the script:
 
 The installer creates `.github/copilot-instructions.md` if it does not already exist, and preserves an existing file so you can keep project-specific guidance there.
 
-### Codex usage
+### Codex Usage
 
-To install system-level Codex-aware agents and skills:
+To install system-level Codex skills and reference agent specs:
 
 ```bash
 ./setup.sh --codex
 ```
 
-The Codex install places this repository's skills under `~/.codex/skills/` so agents can reference the same companion guidance used by VS Code installs.
+The Codex install places this repository's skills under `~/.codex/skills/` so they can be surfaced as reusable runtime guidance.
+
+The current local Codex CLI runtime exposes spawnable sub-agent types through its tool schema. In this install, that schema is limited to `default`, `explorer`, and `worker`; placing `.agent.md` files under `~/.codex/agents/` does not register additional `spawn_agent` types. Keep Codex-facing reusable behavior in skills, and treat `~/.codex/agents/*.agent.md` as role/spec files unless the runtime adds a custom-agent registration mechanism.
 
 ## Structure
 

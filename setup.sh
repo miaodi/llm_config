@@ -12,15 +12,15 @@
 #   Instructions → <project>/.github/copilot-instructions.md
 #
 # Codex install:
-#   Agents  → ~/.codex/agents/
-#   Skills  → ~/.codex/skills/
+#   Agent specs → ~/.codex/agents/  (reference files; not spawn_agent registrations)
+#   Skills      → ~/.codex/skills/
 #
 # Usage:
 #   ./setup.sh                          # symlink user-level install
 #   ./setup.sh --copy                   # copy user-level install
 #   ./setup.sh --project /path/to/repo  # symlink project install
 #   ./setup.sh --project /path/to/repo --copy
-#   ./setup.sh --codex                  # symlink Codex user-level agents and skills
+#   ./setup.sh --codex                  # symlink Codex skills and reference agent specs
 
 set -euo pipefail
 
@@ -38,7 +38,7 @@ Usage:
 Options:
   --copy           Copy files instead of symlinking them.
   --project PATH   Install into PATH/.github instead of user-level directories.
-  --codex          Install Codex-aware agents and skills into ~/.codex.
+  --codex          Install Codex skills and reference agent specs into ~/.codex.
   --help           Show this help text.
 EOF
 }
@@ -189,7 +189,8 @@ if [[ -n "$INSTRUCTIONS_DST" ]]; then
 fi
 echo ""
 if [[ "$TARGET" == "codex" ]]; then
-    echo "Restart Codex for changes to take effect."
+    echo "Restart Codex for skill changes to take effect."
+    echo "Note: ~/.codex/agents/*.agent.md files are reference specs in this CLI; they do not register new spawn_agent types."
 else
     echo "Restart VS Code or reload the window for changes to take effect."
 fi
