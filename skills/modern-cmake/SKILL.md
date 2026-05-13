@@ -72,6 +72,8 @@ Use this mode only when the user asks to clean up, modernize, refactor, reorgani
 - For standard-version issues, prefer `target_compile_features(target PUBLIC cxx_std_20)` or the narrowest appropriate scope.
 
 ## CUDA And nvcc
+- Prefer `.cpp` / `.hpp` for host-only code that calls CUDA runtime APIs, toolkit libraries, or existing host-callable kernel wrappers; do not introduce `.cu` files or CUDA language enablement merely because code uses CUDA-adjacent APIs or existing kernels.
+- Use `.cu` sources and CUDA language compilation only when implementing or refactoring kernel/device code, such as kernel or device definitions, device lambdas, separable compilation, or an established project convention for CUDA-only implementation files.
 - Enable CUDA as a language for normal `.cu` compilation; use `find_package(CUDAToolkit)` for toolkit libraries such as `CUDA::cudart`, `CUDA::cublas`, or `CUDA::cusparse`.
 - Set CUDA standards with target properties or compile features where supported: `CUDA_STANDARD`, `CUDA_STANDARD_REQUIRED`, and `target_compile_features`.
 - Use `$<COMPILE_LANGUAGE:CUDA>` generator expressions for CUDA-only options and `$<COMPILE_LANG_AND_ID:CUDA,NVIDIA>` when nvcc-specific behavior matters.
@@ -112,6 +114,7 @@ Use this mode only when the user asks to clean up, modernize, refactor, reorgani
 - Do not hide compiler errors behind warning suppressions, permissive flags, or forced casts.
 - Do not vendor or fetch dependencies without checking existing dependency policy.
 - Do not assume CUDA support is available just because `.cu` files exist; verify language enablement and toolkit discovery.
+- Do not rename host-only `.cpp` CUDA integration code to `.cu` unless it is becoming kernel/device implementation code or the project already requires that convention.
 - Do not rewrite a build system wholesale when a narrow target fix will handle the request.
 
 ## Output

@@ -39,6 +39,7 @@ Direct, precise, and biased toward simple designs that another strong C++ develo
 - Prefer traits and concepts to express generic constraints explicitly, but keep the metaprogramming surface small.
 - Prefer composition over inheritance.
 - Keep generated runtime behavior straightforward and predictable.
+- For CUDA-adjacent host code, keep files as `.cpp` / `.hpp`; use `.cu` only when adding or refactoring kernel/device implementation or following an existing CUDA-only file convention.
 - Suggest narrow compile or test commands when validation would reduce risk, but leave execution to the user.
 
 ## Escalation Rules

@@ -38,6 +38,7 @@ Diagnostic-first and build-log-driven. Explain which command, target, or CMake p
 - Use verbose builds to recover the exact compiler or linker command before editing.
 - Prefer target-level `PUBLIC` / `PRIVATE` / `INTERFACE` usage requirements over directory-level or global settings.
 - For nvcc issues, separate host compiler failures, device compiler failures, toolkit discovery, and architecture configuration.
+- Keep host-only CUDA integration in `.cpp` / `.hpp`; add `.cu` sources or CUDA language build rules only for kernel/device implementation, separable compilation, or existing project convention.
 - Prefer `find_package` imported targets and explicit fallback logic over raw library paths.
 - Use `CMakePresets.json` when repeatable configure/build/test workflows are part of the request.
 - Verify with `cmake --build <build-dir> --target <target> --verbose` or the closest existing project command.

@@ -28,6 +28,7 @@ Skeptical, measurement-driven, and explicit about tradeoffs.
 - Check data layout, allocations, branch behavior, and parallelization opportunities first.
 - Use branchless transforms only when branches are hurting throughput.
 - Parallelize routines only when work is independent and granularity justifies the overhead.
+- For CUDA-adjacent host code, keep files as `.cpp` / `.hpp`; use `.cu` only when adding or refactoring kernel/device implementation or following an existing CUDA-only file convention.
 
 ## Escalation Rules
 - State clearly when profiling data is missing.

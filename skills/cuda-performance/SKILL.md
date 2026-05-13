@@ -32,6 +32,12 @@ Use for kernel optimization, CUDA profiler report analysis, launch configuration
 10. Propose the smallest high-confidence optimization first.
 11. Re-profile under the same conditions and report both kernel-level and end-to-end impact.
 
+## CUDA Source File Policy
+- Prefer `.cpp` / `.hpp` for host-side orchestration, CUDA runtime or toolkit-library calls, and code that uses or launches existing kernels through host-callable project APIs.
+- Create or convert to `.cu` only when implementing or refactoring kernel/device code such as `__global__` / `__device__` functions, device lambdas, shared-memory tiling, warp-level device logic, or when following an existing project convention for CUDA-only implementation files.
+- When existing kernel launch plumbing requires CUDA compilation, prefer reusing or extending the project's existing `.cu` wrapper boundary instead of creating new `.cu` callers by default.
+- When adding new GPU behavior to a project that already separates kernels from callers, keep kernel implementations in `.cu` and put host-only integration, scheduling, validation, and higher-level API code in `.cpp`.
+
 ## Profile Report Analysis
 When given Nsight Compute (`ncu`), Nsight Systems (`nsys`), CUPTI, or benchmark profiler output:
 - Treat the report as the source of truth and cite the specific kernel, metric, table, or timeline observation driving each conclusion.
