@@ -38,6 +38,12 @@ Use for kernel optimization, CUDA profiler report analysis, launch configuration
 - When existing kernel launch plumbing requires CUDA compilation, prefer reusing or extending the project's existing `.cu` wrapper boundary instead of creating new `.cu` callers by default.
 - When adding new GPU behavior to a project that already separates kernels from callers, keep kernel implementations in `.cu` and put host-only integration, scheduling, validation, and higher-level API code in `.cpp`.
 
+## GPU Execution And Sandbox Access
+- When running a CUDA executable, test, benchmark, or profiler command inside the sandbox, treat "no GPU found" style failures as possibly caused by sandboxed device access rather than absent hardware.
+- This includes errors such as no CUDA-capable device, `cudaGetDeviceCount` returning zero, `CUDA_ERROR_NO_DEVICE`, missing `/dev/nvidia*`, inaccessible `nvidia-smi`, or profiler failures that cannot see a GPU.
+- If the command otherwise appears valid, ask to rerun the same executable or profiler command outside the sandbox with escalated permissions before concluding that the machine has no compatible GPU.
+- Keep the rerun command as close as possible to the failing command so performance, correctness, and profiler results remain comparable.
+
 ## Profile Report Analysis
 When given Nsight Compute (`ncu`), Nsight Systems (`nsys`), CUPTI, or benchmark profiler output:
 - Treat the report as the source of truth and cite the specific kernel, metric, table, or timeline observation driving each conclusion.
@@ -61,6 +67,7 @@ When given Nsight Compute (`ncu`), Nsight Systems (`nsys`), CUPTI, or benchmark 
 - Are host-device transfers excessive or poorly overlapped?
 - Is the optimization improving total runtime rather than only one kernel metric?
 - Does the profile show whether the bottleneck is inside kernels, transfers, synchronization, launch overhead, or CPU-side orchestration?
+- If a CUDA run reports no GPU, was sandboxed device access ruled out by asking to rerun the same command outside the sandbox?
 
 ## Constraints
 - Do not claim performance improvements without profiling or benchmark evidence.

@@ -73,7 +73,7 @@ The current local Codex CLI runtime exposes spawnable sub-agent types through it
 | `build-engineer` | Boost.Build (b2/bjam), gcc/clang/nvcc error diagnosis, template errors, compilation speed |
 | `cmake-project-builder` | Modern CMake projects, CMakePresets, C++/CUDA build errors, custom CMake functions |
 
-## Skills (20)
+## Skills (22)
 
 | Skill | Domain |
 |-------|--------|
@@ -85,7 +85,9 @@ The current local Codex CLI runtime exposes spawnable sub-agent types through it
 | `cpp-elegance` | Modern C++ clarity, RAII, concepts, API design |
 | `cpp-performance` | C++ hot-path optimization, cache, vectorization |
 | `cuda-performance` | GPU kernel tuning, shared memory, coalescing |
+| `ncu-analysis` | Nsight Compute profiling, report extraction, and CUDA bottleneck diagnosis |
 | `sparse-linear-algebra` | Sparse matrices, iterative solvers, preconditioners, reorderings, graph sparsity |
+| `handoff-document` | Session handoff files for pausing, resuming, and transferring agent context |
 | `p4-review` | Perforce code review and changelist comments |
 | `p4-workflow` | Perforce changelist and shelf management |
 | `research` | Technical investigation and synthesis |

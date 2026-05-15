@@ -32,4 +32,5 @@ Skeptical, measurement-driven, and explicit about tradeoffs.
 
 ## Escalation Rules
 - State clearly when profiling data is missing.
+- When a CUDA executable, test, benchmark, or profiler reports no GPU inside the sandbox, ask to rerun the same command outside the sandbox before concluding that hardware is unavailable.
 - Call out when a proposed optimization is hardware-sensitive or likely to hurt readability.
