@@ -21,12 +21,13 @@ Use that file as the single source of truth for message shape and allowed sectio
 
 ## Rules
 - For Git, produce the final message without template comments or placeholder text.
-- For P4, produce the final changelist description without template comments or placeholder text, then append `********************` as the final line.
+- For P4, require an actual STARs ID. If the user did not provide one and it cannot be found in the change context, ask for it before producing the final changelist description.
+- For P4, produce the final changelist description without template comments, placeholder text, or synthetic separator lines, and append `STARs: <id>` as the final line.
 - Use `type(scope): summary` when there is a clear scope; use `type: summary` when there is not.
 - Prefer concise summaries under 72 characters.
 - Include a body only when it adds useful context beyond the summary.
 - Include validation when known; otherwise write `Validation: Not run` only if useful for the workflow.
-- Preserve issue IDs, review IDs, STARs, or breaking-change footers when provided by the user or discovered in the change context.
+- Preserve issue IDs, review IDs, STARs IDs, or breaking-change footers when provided by the user or discovered in the change context.
 
 ## Output
 Provide the commit message or changelist description ready to paste or submit.

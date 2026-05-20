@@ -28,7 +28,7 @@ Use when inspecting pending work, managing changelists, reviewing shelves, compa
 7. Summarize findings in terms of files, changelist scope, and submission risk.
 
 ## Changelist Descriptions
-When drafting, editing, or reviewing a P4 changelist description, read `../commit-message/SKILL.md` and follow the shared Git/P4 commit message template referenced there. For final P4 descriptions, append `********************` as the final line.
+When drafting, editing, or reviewing a P4 changelist description, read `../commit-message/SKILL.md` and follow the shared Git/P4 commit message template referenced there. A final P4 changelist description must include the actual STARs ID as the final line; ask for the STARs ID if the user did not provide it and it cannot be found in the change context.
 
 ## Review Checklist
 - What changelist or shelf is under review?
