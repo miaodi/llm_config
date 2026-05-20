@@ -26,7 +26,7 @@ Use that file as the single source of truth for message shape and allowed sectio
 - Use `type(scope): summary` when there is a clear scope; use `type: summary` when there is not.
 - Prefer concise summaries under 72 characters.
 - Include a body only when it adds useful context beyond the summary.
-- Include validation when known; otherwise write `Validation: Not run` only if useful for the workflow.
+- Include validation only when the user provides it or the workflow explicitly needs it; do not add placeholder validation.
 - Preserve issue IDs, review IDs, STARs IDs, or breaking-change footers when provided by the user or discovered in the change context.
 
 ## Output

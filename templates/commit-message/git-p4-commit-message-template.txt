@@ -29,9 +29,6 @@ feat(core): add user authentication
 Implements JWT-based authentication for the core API.
 Handles login, logout, and token refresh.
 
-Validation:
-- npm test
-
 BREAKING CHANGE: Old login endpoints removed.
 
 STARs: STAR-123456
