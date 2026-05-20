@@ -87,6 +87,7 @@ done
 
 AGENT_SRC="$SCRIPT_DIR/agents"
 SKILL_SRC="$SCRIPT_DIR/skills"
+COMMIT_MESSAGE_TEMPLATE_SRC="$SCRIPT_DIR/templates/commit-message/git-p4-commit-message-template.txt"
 INSTALL_SKILLS=1
 
 if [[ "$TARGET" == "project" ]]; then
@@ -94,14 +95,17 @@ if [[ "$TARGET" == "project" ]]; then
     GITHUB_DIR="$PROJECT_ROOT/.github"
     AGENT_DST="$GITHUB_DIR/agents"
     SKILL_DST="$GITHUB_DIR/skills"
+    COMMIT_MESSAGE_TEMPLATE_DST="$GITHUB_DIR/templates/commit-message/git-p4-commit-message-template.txt"
     INSTRUCTIONS_DST="$GITHUB_DIR/copilot-instructions.md"
 elif [[ "$TARGET" == "codex" ]]; then
     AGENT_DST="${HOME}/.codex/agents"
     SKILL_DST="${HOME}/.codex/skills"
+    COMMIT_MESSAGE_TEMPLATE_DST="${HOME}/.codex/templates/commit-message/git-p4-commit-message-template.txt"
     INSTRUCTIONS_DST=""
 else
     AGENT_DST="${HOME}/.config/Code/User/agents"
     SKILL_DST="${HOME}/.copilot/skills"
+    COMMIT_MESSAGE_TEMPLATE_DST="${HOME}/.config/Code/User/templates/commit-message/git-p4-commit-message-template.txt"
     INSTRUCTIONS_DST=""
 fi
 
@@ -173,6 +177,11 @@ if [[ "$INSTALL_SKILLS" -eq 1 ]]; then
     done
 fi
 
+if [[ -f "$COMMIT_MESSAGE_TEMPLATE_SRC" ]]; then
+    echo "Installing commit message template to $COMMIT_MESSAGE_TEMPLATE_DST ..."
+    install_file "$COMMIT_MESSAGE_TEMPLATE_SRC" "$COMMIT_MESSAGE_TEMPLATE_DST"
+fi
+
 if [[ -n "$INSTRUCTIONS_DST" ]]; then
     echo "Installing project instructions to $INSTRUCTIONS_DST ..."
     create_project_instructions "$INSTRUCTIONS_DST" "$(basename "$PROJECT_ROOT")"
@@ -183,6 +192,9 @@ echo "Done ($MODE mode)."
 echo "Agents are in: $AGENT_DST"
 if [[ "$INSTALL_SKILLS" -eq 1 ]]; then
     echo "Skills are in: $SKILL_DST"
+fi
+if [[ -f "$COMMIT_MESSAGE_TEMPLATE_SRC" ]]; then
+    echo "Commit template is in: $COMMIT_MESSAGE_TEMPLATE_DST"
 fi
 if [[ -n "$INSTRUCTIONS_DST" ]]; then
     echo "Instructions are in: $INSTRUCTIONS_DST"

@@ -1,0 +1,36 @@
+# Commit Message Template (Git & P4)
+
+# Usage:
+# - For Git: Use this as your commit message template.
+# - For P4: Use this template for the changelist description and append
+#   a line of STARs (********************) at the end.
+
+# Format:
+type(scope): short summary
+
+[Optional longer description]
+
+[Optional validation notes]
+
+[Optional footer: references, breaking changes, etc.]
+
+# Types: feat, fix, refactor, docs, style, test, chore, perf, build, ci, etc.
+# Scope: optional; omit parentheses when no scope applies.
+# Short summary: imperative or descriptive, concise, max 72 chars.
+# Longer description: what changed and why, if needed.
+# Validation notes: tests, builds, manual checks, or "Not run".
+# Footer: issue references, breaking changes, review IDs, etc.
+
+# Example:
+feat(core): add user authentication
+
+Implements JWT-based authentication for the core API.
+Handles login, logout, and token refresh.
+
+Validation:
+- npm test
+
+BREAKING CHANGE: Old login endpoints removed.
+
+# For P4, append the following line at the end:
+# ********************

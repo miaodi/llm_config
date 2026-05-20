@@ -27,6 +27,9 @@ Use when inspecting pending work, managing changelists, reviewing shelves, compa
 6. Call out integration, resolve, and branch history concerns when they affect correctness.
 7. Summarize findings in terms of files, changelist scope, and submission risk.
 
+## Changelist Descriptions
+When drafting, editing, or reviewing a P4 changelist description, read `../commit-message/SKILL.md` and follow the shared Git/P4 commit message template referenced there. For final P4 descriptions, append `********************` as the final line.
+
 ## Review Checklist
 - What changelist or shelf is under review?
 - Are the files in the changelist actually related?

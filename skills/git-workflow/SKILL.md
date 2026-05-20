@@ -24,6 +24,7 @@ Use for branch sync, pull request preparation, merge vs rebase decisions, confli
 - Rebase workflows (interactive and non-interactive)
 - Conflict resolution for merge and rebase
 - Commit cleanup before PR (squash, reorder, edit messages)
+- Commit message drafting using the shared `commit-message` skill/template
 - Cherry-pick for selective change transfer
 - Syncing from remote and handling divergence
 - Recovery with reflog, reset, revert, and abort commands
@@ -72,6 +73,9 @@ Use for branch sync, pull request preparation, merge vs rebase decisions, confli
 - Is commit history understandable for reviewers?
 - Was force push done only with `--force-with-lease` and only when appropriate?
 - Is there a clear rollback path documented if needed?
+
+## Commit Messages
+When drafting, editing, or reviewing a Git commit message, read `../commit-message/SKILL.md` and follow the shared Git/P4 commit message template referenced there.
 
 ## Constraints
 - Do not recommend rewriting shared branch history without explicit approval.
