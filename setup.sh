@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Install llm-config agents and skills into VS Code user-level directories,
+# Install llm-config agents and skills into Copilot user-level directories,
 # a project's .github directory, or Codex user-level directories.
 #
-# User install:
-#   Agents  → ~/.config/Code/User/agents/
+# Copilot install:
+#   Agents  → ~/.copilot/agents/
 #   Skills  → ~/.copilot/skills/
 #
 # Project install:
@@ -16,8 +16,8 @@
 #   Skills      → ~/.codex/skills/
 #
 # Usage:
-#   ./setup.sh                          # symlink user-level install
-#   ./setup.sh --copy                   # copy user-level install
+#   ./setup.sh --copilot                # symlink Copilot user-level install
+#   ./setup.sh --copilot --copy         # copy Copilot user-level install
 #   ./setup.sh --project /path/to/repo  # symlink project install
 #   ./setup.sh --project /path/to/repo --copy
 #   ./setup.sh --codex                  # symlink Codex skills and reference agent specs
@@ -28,18 +28,21 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 MODE="symlink"
 PROJECT_ROOT=""
-TARGET="vscode"
+TARGET=""
 
 usage() {
     cat <<EOF
 Usage:
-  ./setup.sh [--copy] [--project PATH|--codex]
+./setup.sh --copilot [--copy]
+./setup.sh --project PATH [--copy]
+./setup.sh --codex [--copy]
 
 Options:
-  --copy           Copy files instead of symlinking them.
-  --project PATH   Install into PATH/.github instead of user-level directories.
-  --codex          Install Codex skills and reference agent specs into ~/.codex.
-  --help           Show this help text.
+--copilot        Install Copilot agents and skills into user-level directories.
+--copy           Copy files instead of symlinking them.
+--project PATH   Install into PATH/.github instead of user-level directories.
+--codex          Install Codex skills and reference agent specs into ~/.codex.
+--help           Show this help text.
 EOF
 }
 
@@ -49,14 +52,23 @@ while [[ $# -gt 0 ]]; do
             MODE="copy"
             shift
             ;;
+        --copilot)
+            if [[ -n "$TARGET" ]]; then
+                echo "error: choose only one install target" >&2
+                usage >&2
+                exit 1
+            fi
+            TARGET="copilot"
+            shift
+            ;;
         --project)
             if [[ $# -lt 2 ]]; then
                 echo "error: --project requires a path" >&2
                 usage >&2
                 exit 1
             fi
-            if [[ "$TARGET" == "codex" ]]; then
-                echo "error: --project and --codex cannot be used together" >&2
+            if [[ -n "$TARGET" ]]; then
+                echo "error: choose only one install target" >&2
                 usage >&2
                 exit 1
             fi
@@ -65,8 +77,8 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         --codex)
-            if [[ -n "$PROJECT_ROOT" ]]; then
-                echo "error: --project and --codex cannot be used together" >&2
+            if [[ -n "$TARGET" ]]; then
+                echo "error: choose only one install target" >&2
                 usage >&2
                 exit 1
             fi
@@ -85,10 +97,24 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+if [[ -z "$TARGET" ]]; then
+    echo "error: choose an install target: --copilot, --project PATH, or --codex" >&2
+    usage >&2
+    exit 1
+fi
+
 AGENT_SRC="$SCRIPT_DIR/agents"
 SKILL_SRC="$SCRIPT_DIR/skills"
 COMMIT_MESSAGE_TEMPLATE_SRC="$SCRIPT_DIR/templates/commit-message/git-p4-commit-message-template.txt"
 INSTALL_SKILLS=1
+
+resolve_vscode_user_dir() {
+    if [[ -d "${HOME}/.vscode-server/data/User" ]]; then
+        printf '%s\n' "${HOME}/.vscode-server/data/User"
+    else
+        printf '%s\n' "${HOME}/.config/Code/User"
+    fi
+}
 
 if [[ "$TARGET" == "project" ]]; then
     PROJECT_ROOT="$(cd "$PROJECT_ROOT" && pwd)"
@@ -102,11 +128,15 @@ elif [[ "$TARGET" == "codex" ]]; then
     SKILL_DST="${HOME}/.codex/skills"
     COMMIT_MESSAGE_TEMPLATE_DST="${HOME}/.codex/templates/commit-message/git-p4-commit-message-template.txt"
     INSTRUCTIONS_DST=""
-else
-    AGENT_DST="${HOME}/.config/Code/User/agents"
+elif [[ "$TARGET" == "copilot" ]]; then
+    VSCODE_USER_DIR="$(resolve_vscode_user_dir)"
+    AGENT_DST="${HOME}/.copilot/agents"
     SKILL_DST="${HOME}/.copilot/skills"
-    COMMIT_MESSAGE_TEMPLATE_DST="${HOME}/.config/Code/User/templates/commit-message/git-p4-commit-message-template.txt"
+    COMMIT_MESSAGE_TEMPLATE_DST="$VSCODE_USER_DIR/templates/commit-message/git-p4-commit-message-template.txt"
     INSTRUCTIONS_DST=""
+else
+    echo "error: unsupported install target: $TARGET" >&2
+    exit 1
 fi
 
 install_file() {

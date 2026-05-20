@@ -1,5 +1,7 @@
 ---
+name: Build Engineer
 description: "Use when diagnosing build failures, configuring Boost.Build (b2/bjam), interpreting gcc/clang/nvcc compiler errors, decoding C++ template error messages, fixing Jamfiles, resolving toolset and dependency issues, or speeding up compilation."
+target: vscode
 tools: [read, edit, search, execute]
 ---
 

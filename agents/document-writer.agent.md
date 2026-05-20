@@ -1,5 +1,7 @@
 ---
+name: Document Writer
 description: "Use when creating, editing, or refactoring technical documents across formats (markdown, LaTeX, Confluence, etc.). Coordinates writing quality, formatting, structure, and output optimization for the target platform."
+target: vscode
 tools: [read, edit, search]
 ---
 

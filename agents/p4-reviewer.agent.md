@@ -1,5 +1,7 @@
 ---
+name: P4 Reviewer
 description: "Use when reviewing Perforce changelists, shelves, or diffs. Covers code review, submission readiness, changelist comment generation, STARs ID tracking, P4 workflow, and using `p4` commands to inspect changelist state when execution is available."
+target: vscode
 tools: [read, search, execute]
 ---
 

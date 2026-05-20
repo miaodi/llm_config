@@ -1,5 +1,7 @@
 ---
+name: Course Project Worker
 description: "Use when working on a course project, homework assignment, or academic project. Covers PDF spec extraction, Python ML implementation, reinforcement learning experiments, LaTeX/TikZ report writing, Overleaf workflows, and experiment analysis."
+target: vscode
 tools: [read, edit, search, execute, web]
 ---
 

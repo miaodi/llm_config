@@ -1,5 +1,7 @@
 ---
+name: Agent Creator
 description: "Use when creating or refining a custom agent (.agent.md), choosing its tool set, defining its role boundaries, improving delegation keywords, or deciding whether the job should become a companion skill instead."
+target: vscode
 tools: [read, edit, search]
 ---
 

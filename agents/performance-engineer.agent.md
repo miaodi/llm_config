@@ -1,5 +1,7 @@
 ---
+name: Performance Engineer
 description: "Use when optimizing runtime performance, profiling, analyzing bottlenecks, or tuning C++/CUDA code. Covers hot-path analysis, memory layout, cache efficiency, vectorization, parallelization, and GPU kernel tuning."
+target: vscode
 tools: [read, edit, search, execute]
 ---
 

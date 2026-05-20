@@ -4,25 +4,28 @@ Central repository for LLM and agent configuration, reusable skills, prompts, an
 
 ## Installation
 
-Run the setup script to install agents and skills into VS Code user-level directories, a project's `.github` directory, or Codex user-level directories.
+Run the setup script to install agents and skills into Copilot user-level directories, a project's `.github` directory, or Codex user-level directories. Choose one explicit install target; bare `./setup.sh` does not perform an install.
 
 ```bash
-./setup.sh                          # symlink user-level install (default)
-./setup.sh --copy                   # copy user-level install
+./setup.sh --copilot                # symlink Copilot user-level install
+./setup.sh --copilot --copy         # copy Copilot user-level install
 ./setup.sh --project /path/to/repo  # symlink project install into .github/
 ./setup.sh --project /path/to/repo --copy
 ./setup.sh --codex                  # symlink Codex skills and reference agent specs
 ./setup.sh --codex --copy           # copy Codex skills and reference agent specs
 ```
 
-User install targets:
-- **Agents** → `~/.config/Code/User/agents/*.agent.md`
+Copilot install targets:
+- **Agents** → `~/.copilot/agents/*.agent.md`
 - **Skills** → `~/.copilot/skills/<name>/SKILL.md`
 
 Project install targets:
 - **Agents** → `<project>/.github/agents/*.agent.md`
+- **Agents (Claude format)** → `<project>/.claude/agents/*.agent.md`
 - **Skills** → `<project>/.github/skills/<name>/SKILL.md`
 - **Instructions** → `<project>/.github/copilot-instructions.md` (generated as a normal file, not a symlink)
+
+Agent frontmatter uses `name` and `target: vscode` for Copilot/VS Code discovery. Codex installs these files as reference agent specs, and Claude-format agents under `.claude/agents/` may need separate Claude-specific metadata; do not rely on `target: vscode` as a portable Codex or Claude registration field.
 
 Codex install targets:
 - **Agent specs** → `~/.codex/agents/*.agent.md` (reference files; not currently registered as new `spawn_agent` types)
@@ -73,6 +76,7 @@ The current local Codex CLI runtime exposes spawnable sub-agent types through it
 | `build-engineer` | Boost.Build (b2/bjam), gcc/clang/nvcc error diagnosis, template errors, compilation speed |
 | `cmake-project-builder` | Modern CMake projects, CMakePresets, C++/CUDA build errors, custom CMake functions |
 | `git-integrator` | Git branch integration: merge/rebase strategy, conflict resolution, branch sync, and safe recovery |
+| `git-publisher` | Git commit and push workflow: status, diff review, staging, commit messages, and publishing |
 
 ## Skills (23)
 
