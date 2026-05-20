@@ -72,13 +72,15 @@ The current local Codex CLI runtime exposes spawnable sub-agent types through it
 | `course-project-worker` | Course projects end-to-end: spec extraction, Python ML, RL, LaTeX reports |
 | `build-engineer` | Boost.Build (b2/bjam), gcc/clang/nvcc error diagnosis, template errors, compilation speed |
 | `cmake-project-builder` | Modern CMake projects, CMakePresets, C++/CUDA build errors, custom CMake functions |
+| `git-integrator` | Git branch integration: merge/rebase strategy, conflict resolution, branch sync, and safe recovery |
 
-## Skills (22)
+## Skills (23)
 
 | Skill | Domain |
 |-------|--------|
 | `agent-customization` | Custom agent and skill scope, tools, and delegation wording |
 | `coding` | General implementation, debugging, refactoring |
+| `git-workflow` | Git branch workflows, merge/rebase decisions, conflict resolution, history cleanup, and recovery |
 | `shell` | Bash, zsh, csh/tcsh scripting, terminal automation, pipelines, portability, and shell debugging |
 | `boost-build` | Boost.Build (b2/bjam), Jamfiles, toolsets, compiler error decoding, compile-time optimization |
 | `modern-cmake` | Modern CMake, target usage requirements, presets, toolchains, C++/CUDA/nvcc build diagnosis |
