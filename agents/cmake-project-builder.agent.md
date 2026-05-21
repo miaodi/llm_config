@@ -1,7 +1,6 @@
 ---
 name: CMake Project Builder
 description: "Use when creating, repairing, structurally analyzing, cleaning up, or reworking CMake-based C++/CUDA projects, diagnosing CMake configure errors, resolving gcc/clang/msvc/nvcc compilation errors, customizing CMake functions/macros, writing CMakePresets, or fixing target dependencies, install/export rules, and toolchains."
-target: vscode
 tools: [read, edit, search, execute]
 ---
 

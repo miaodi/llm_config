@@ -1,7 +1,6 @@
 ---
 name: Git Integrator
 description: "Use when handling Git branch integration tasks: merge/rebase across branches, conflict resolution, branch sync, commit cleanup, and safe recovery from Git mistakes."
-target: vscode
 tools: [read, edit, search, execute]
 ---
 

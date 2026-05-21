@@ -1,7 +1,6 @@
 ---
 name: Git Publisher
 description: "Use when committing and pushing current Git work: inspect status, review diffs, stage intended files, draft commit messages, commit, push, and report what was published."
-target: vscode
 tools: [read, edit, search, execute]
 agents: []
 ---

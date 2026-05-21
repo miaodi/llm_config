@@ -1,7 +1,6 @@
 ---
 name: Agent Name
 description: "Use when {trigger phrases with keywords for discovery}"
-target: vscode
 tools: [read, edit, search]
 ---
 
