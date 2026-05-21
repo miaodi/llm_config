@@ -1,26 +1,41 @@
 #!/usr/bin/env bash
-# Install llm-config agents and skills into Copilot user-level directories,
-# a project's .github directory, or Codex user-level directories.
+# Install llm-config agents and skills into Copilot, Codex, or OpenCode
+# user-level directories, or into a project-local configuration directory.
 #
 # Copilot install:
 #   Agents  → ~/.copilot/agents/
 #   Skills  → ~/.copilot/skills/
 #
-# Project install:
+# Copilot project install:
 #   Agents  → <project>/.github/agents/
 #   Skills  → <project>/.github/skills/
 #   Instructions → <project>/.github/copilot-instructions.md
 #
 # Codex install:
-#   Agent specs → ~/.codex/agents/  (reference files; not spawn_agent registrations)
-#   Skills      → ~/.codex/skills/
+#   Agents  → ~/.codex/agents/  (.agent.md files)
+#   Skills  → ~/.codex/skills/
+#
+# Codex project install:
+#   Agents  → <project>/.codex/agents/  (.agent.md files)
+#   Skills  → <project>/.codex/skills/
+#
+# OpenCode install:
+#   Agents  → ~/.config/opencode/agents/  (.md files)
+#   Skills  → ~/.config/opencode/skills/
+#
+# OpenCode project install:
+#   Agents  → <project>/.opencode/agents/  (.md files)
+#   Skills  → <project>/.opencode/skills/
 #
 # Usage:
 #   ./setup.sh --copilot                # symlink Copilot user-level install
 #   ./setup.sh --copilot --copy         # copy Copilot user-level install
-#   ./setup.sh --project /path/to/repo  # symlink project install
-#   ./setup.sh --project /path/to/repo --copy
-#   ./setup.sh --codex                  # symlink Codex skills and reference agent specs
+#   ./setup.sh --copilot-project /path/to/repo
+#   ./setup.sh --copilot-project /path/to/repo --copy
+#   ./setup.sh --codex                  # install Codex user-level agents and skills
+#   ./setup.sh --codex-project /path/to/repo
+#   ./setup.sh --opencode               # install OpenCode user-level agents and skills
+#   ./setup.sh --opencode-project /path/to/repo
 
 set -euo pipefail
 
@@ -34,14 +49,24 @@ usage() {
     cat <<EOF
 Usage:
 ./setup.sh --copilot [--copy]
-./setup.sh --project PATH [--copy]
+./setup.sh --copilot-project PATH [--copy]
 ./setup.sh --codex [--copy]
+./setup.sh --codex-project PATH [--copy]
+./setup.sh --opencode [--copy]
+./setup.sh --opencode-project PATH [--copy]
 
 Options:
 --copilot        Install Copilot agents and skills into user-level directories.
 --copy           Copy files instead of symlinking them.
---project PATH   Install into PATH/.github instead of user-level directories.
---codex          Install Codex skills and reference agent specs into ~/.codex.
+--copilot-project PATH
+                 Install Copilot agents and skills into PATH/.github.
+--project PATH   Alias for --copilot-project PATH.
+--codex          Install Codex agents and skills into user-level directories.
+--codex-project PATH
+                 Install Codex agents and skills into PATH/.codex.
+--opencode       Install OpenCode agents and skills into user-level directories.
+--opencode-project PATH
+                 Install OpenCode agents and skills into PATH/.opencode.
 --help           Show this help text.
 EOF
 }
@@ -61,9 +86,9 @@ while [[ $# -gt 0 ]]; do
             TARGET="copilot"
             shift
             ;;
-        --project)
+        --copilot-project|--project)
             if [[ $# -lt 2 ]]; then
-                echo "error: --project requires a path" >&2
+                echo "error: $1 requires a path" >&2
                 usage >&2
                 exit 1
             fi
@@ -73,7 +98,37 @@ while [[ $# -gt 0 ]]; do
                 exit 1
             fi
             PROJECT_ROOT="$2"
-            TARGET="project"
+            TARGET="copilot-project"
+            shift 2
+            ;;
+        --codex-project)
+            if [[ $# -lt 2 ]]; then
+                echo "error: --codex-project requires a path" >&2
+                usage >&2
+                exit 1
+            fi
+            if [[ -n "$TARGET" ]]; then
+                echo "error: choose only one install target" >&2
+                usage >&2
+                exit 1
+            fi
+            PROJECT_ROOT="$2"
+            TARGET="codex-project"
+            shift 2
+            ;;
+        --opencode-project)
+            if [[ $# -lt 2 ]]; then
+                echo "error: --opencode-project requires a path" >&2
+                usage >&2
+                exit 1
+            fi
+            if [[ -n "$TARGET" ]]; then
+                echo "error: choose only one install target" >&2
+                usage >&2
+                exit 1
+            fi
+            PROJECT_ROOT="$2"
+            TARGET="opencode-project"
             shift 2
             ;;
         --codex)
@@ -83,6 +138,15 @@ while [[ $# -gt 0 ]]; do
                 exit 1
             fi
             TARGET="codex"
+            shift
+            ;;
+        --opencode)
+            if [[ -n "$TARGET" ]]; then
+                echo "error: choose only one install target" >&2
+                usage >&2
+                exit 1
+            fi
+            TARGET="opencode"
             shift
             ;;
         --help|-h)
@@ -98,7 +162,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "$TARGET" ]]; then
-    echo "error: choose an install target: --copilot, --project PATH, or --codex" >&2
+    echo "error: choose an install target: --copilot, --copilot-project PATH, --codex, --codex-project PATH, --opencode, or --opencode-project PATH" >&2
     usage >&2
     exit 1
 fi
@@ -107,6 +171,7 @@ AGENT_SRC="$SCRIPT_DIR/agents"
 SKILL_SRC="$SCRIPT_DIR/skills"
 COMMIT_MESSAGE_TEMPLATE_SRC="$SCRIPT_DIR/templates/commit-message/git-p4-commit-message-template.txt"
 INSTALL_SKILLS=1
+AGENT_INSTALL_FORMAT="source"
 
 resolve_vscode_user_dir() {
     if [[ -d "${HOME}/.vscode-server/data/User" ]]; then
@@ -116,7 +181,7 @@ resolve_vscode_user_dir() {
     fi
 }
 
-if [[ "$TARGET" == "project" ]]; then
+if [[ "$TARGET" == "copilot-project" ]]; then
     PROJECT_ROOT="$(cd "$PROJECT_ROOT" && pwd)"
     GITHUB_DIR="$PROJECT_ROOT/.github"
     AGENT_DST="$GITHUB_DIR/agents"
@@ -124,10 +189,33 @@ if [[ "$TARGET" == "project" ]]; then
     COMMIT_MESSAGE_TEMPLATE_DST="$GITHUB_DIR/templates/commit-message/git-p4-commit-message-template.txt"
     INSTRUCTIONS_DST="$GITHUB_DIR/copilot-instructions.md"
 elif [[ "$TARGET" == "codex" ]]; then
-    AGENT_DST="${HOME}/.codex/agents"
-    SKILL_DST="${HOME}/.codex/skills"
-    COMMIT_MESSAGE_TEMPLATE_DST="${HOME}/.codex/templates/commit-message/git-p4-commit-message-template.txt"
+    CODEX_HOME="${CODEX_HOME:-${HOME}/.codex}"
+    AGENT_DST="$CODEX_HOME/agents"
+    SKILL_DST="$CODEX_HOME/skills"
+    COMMIT_MESSAGE_TEMPLATE_DST="$CODEX_HOME/templates/commit-message/git-p4-commit-message-template.txt"
     INSTRUCTIONS_DST=""
+elif [[ "$TARGET" == "codex-project" ]]; then
+    PROJECT_ROOT="$(cd "$PROJECT_ROOT" && pwd)"
+    CODEX_DIR="$PROJECT_ROOT/.codex"
+    AGENT_DST="$CODEX_DIR/agents"
+    SKILL_DST="$CODEX_DIR/skills"
+    COMMIT_MESSAGE_TEMPLATE_DST="$CODEX_DIR/templates/commit-message/git-p4-commit-message-template.txt"
+    INSTRUCTIONS_DST=""
+elif [[ "$TARGET" == "opencode" ]]; then
+    OPENCODE_HOME="${OPENCODE_HOME:-${HOME}/.config/opencode}"
+    AGENT_DST="$OPENCODE_HOME/agents"
+    SKILL_DST="$OPENCODE_HOME/skills"
+    COMMIT_MESSAGE_TEMPLATE_DST="$OPENCODE_HOME/templates/commit-message/git-p4-commit-message-template.txt"
+    INSTRUCTIONS_DST=""
+    AGENT_INSTALL_FORMAT="opencode"
+elif [[ "$TARGET" == "opencode-project" ]]; then
+    PROJECT_ROOT="$(cd "$PROJECT_ROOT" && pwd)"
+    OPENCODE_DIR="$PROJECT_ROOT/.opencode"
+    AGENT_DST="$OPENCODE_DIR/agents"
+    SKILL_DST="$OPENCODE_DIR/skills"
+    COMMIT_MESSAGE_TEMPLATE_DST="$OPENCODE_DIR/templates/commit-message/git-p4-commit-message-template.txt"
+    INSTRUCTIONS_DST=""
+    AGENT_INSTALL_FORMAT="opencode"
 elif [[ "$TARGET" == "copilot" ]]; then
     VSCODE_USER_DIR="$(resolve_vscode_user_dir)"
     AGENT_DST="${HOME}/.copilot/agents"
@@ -159,6 +247,57 @@ install_dir() {
     fi
 }
 
+install_opencode_agent_file() {
+    local src="$1" dst="$2"
+    mkdir -p "$(dirname "$dst")"
+    awk -v src="$src" '
+        NR == 1 && $0 == "---" {
+            in_frontmatter = 1
+            next
+        }
+        in_frontmatter && $0 == "---" {
+            if (description == "") {
+                print "error: missing description in " src > "/dev/stderr"
+                exit 1
+            }
+            print "---"
+            print description
+            print "mode: subagent"
+            print "---"
+            in_frontmatter = 0
+            next
+        }
+        in_frontmatter {
+            if ($0 ~ /^description:[[:space:]]*/) {
+                description = $0
+            }
+            next
+        }
+        {
+            print
+        }
+    ' "$src" > "$dst"
+}
+
+ensure_dir() {
+    local dst="$1"
+    if [[ ! -d "$dst" ]]; then
+        if [[ -e "$dst" || -L "$dst" ]]; then
+            echo "error: $dst exists but is not a directory; remove it first:" >&2
+            echo "  rm $dst" >&2
+            exit 1
+        fi
+        local parent
+        parent="$(dirname "$dst")"
+        if [[ (-e "$parent" || -L "$parent") && ! -d "$parent" ]]; then
+            echo "error: $parent exists but is not a directory; remove it first:" >&2
+            echo "  rm $parent" >&2
+            exit 1
+        fi
+        mkdir -p "$dst"
+    fi
+}
+
 create_project_instructions() {
     local dst="$1"
     local project_name="$2"
@@ -187,18 +326,24 @@ EOF
     echo "  copilot-instructions.md"
 }
 
-echo "Installing agents to $AGENT_DST ..."
+echo "Installing agents..."
+echo "  Installing to $AGENT_DST ..."
 mkdir -p "$AGENT_DST"
 for f in "$AGENT_SRC"/*.agent.md; do
     [ -f "$f" ] || continue
     name="$(basename "$f")"
-    install_file "$f" "$AGENT_DST/$name"
+    if [[ "$AGENT_INSTALL_FORMAT" == "opencode" ]]; then
+        name="${name%.agent.md}.md"
+        install_opencode_agent_file "$f" "$AGENT_DST/$name"
+    else
+        install_file "$f" "$AGENT_DST/$name"
+    fi
     echo "  $name"
 done
 
 if [[ "$INSTALL_SKILLS" -eq 1 ]]; then
     echo "Installing skills to $SKILL_DST ..."
-    mkdir -p "$SKILL_DST"
+    ensure_dir "$SKILL_DST"
     for d in "$SKILL_SRC"/*/; do
         [ -d "$d" ] || continue
         name="$(basename "$d")"
@@ -230,9 +375,10 @@ if [[ -n "$INSTRUCTIONS_DST" ]]; then
     echo "Instructions are in: $INSTRUCTIONS_DST"
 fi
 echo ""
-if [[ "$TARGET" == "codex" ]]; then
-    echo "Restart Codex for skill changes to take effect."
-    echo "Note: ~/.codex/agents/*.agent.md files are reference specs in this CLI; they do not register new spawn_agent types."
+if [[ "$TARGET" == "codex" || "$TARGET" == "codex-project" ]]; then
+    echo "Restart Codex for changes to take effect."
+elif [[ "$TARGET" == "opencode" || "$TARGET" == "opencode-project" ]]; then
+    echo "Restart OpenCode for changes to take effect."
 else
     echo "Restart VS Code or reload the window for changes to take effect."
 fi

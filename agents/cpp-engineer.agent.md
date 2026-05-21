@@ -1,5 +1,5 @@
 ---
-name: C++ Engineer
+name: Cpp Engineer
 description: "Use when implementing, reviewing, refactoring, or designing modern C++ code. Covers API design, type safety, ownership, RAII, compile-time computation, traits, concepts, and metaprogramming decisions."
 tools: [read, edit, search]
 ---

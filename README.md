@@ -4,56 +4,79 @@ Central repository for LLM and agent configuration, reusable skills, prompts, an
 
 ## Installation
 
-Run the setup script to install agents and skills into Copilot user-level directories, a project's `.github` directory, or Codex user-level directories. Choose one explicit install target; bare `./setup.sh` does not perform an install.
+Run the setup script to install agents and skills into Copilot, Codex, or OpenCode user-level directories, or into a project-local configuration directory. Choose one explicit install target; bare `./setup.sh` does not perform an install.
 
 ```bash
 ./setup.sh --copilot                # symlink Copilot user-level install
 ./setup.sh --copilot --copy         # copy Copilot user-level install
-./setup.sh --project /path/to/repo  # symlink project install into .github/
-./setup.sh --project /path/to/repo --copy
-./setup.sh --codex                  # symlink Codex skills and reference agent specs
-./setup.sh --codex --copy           # copy Codex skills and reference agent specs
+./setup.sh --copilot-project /path/to/repo
+./setup.sh --copilot-project /path/to/repo --copy
+./setup.sh --codex                  # symlink Codex skills and agent specs
+./setup.sh --codex --copy           # copy Codex skills and agent specs
+./setup.sh --opencode               # install OpenCode skills and agents
+./setup.sh --opencode --copy        # copy OpenCode skills and agents
+./setup.sh --opencode-project /path/to/repo
 ```
 
 Copilot install targets:
 - **Agents** → `~/.copilot/agents/*.agent.md`
 - **Skills** → `~/.copilot/skills/<name>/SKILL.md`
 
-Project install targets:
+Copilot project install targets:
 - **Agents** → `<project>/.github/agents/*.agent.md`
 - **Agents (Claude format)** → `<project>/.claude/agents/*.agent.md`
 - **Skills** → `<project>/.github/skills/<name>/SKILL.md`
 - **Instructions** → `<project>/.github/copilot-instructions.md` (generated as a normal file, not a symlink)
 
-Agent frontmatter uses `name` and `target: vscode` for Copilot/VS Code discovery. Codex installs these files as reference agent specs, and Claude-format agents under `.claude/agents/` may need separate Claude-specific metadata; do not rely on `target: vscode` as a portable Codex or Claude registration field.
+Agent frontmatter uses `name` and `target: vscode` for Copilot/VS Code discovery. Codex installs the same Markdown agent specs under `~/.codex/agents/`; Claude-format agents under `.claude/agents/` may need separate Claude-specific metadata, so do not rely on `target: vscode` as a portable Codex or Claude registration field.
 
 Codex install targets:
-- **Agent specs** → `~/.codex/agents/*.agent.md` (reference files; not currently registered as new `spawn_agent` types)
+- **Agent specs** → `~/.codex/agents/*.agent.md`
 - **Skills** → `~/.codex/skills/<name>/SKILL.md`
 
-Restart VS Code or reload the window after running VS Code installs. Restart Codex after running a Codex install.
+OpenCode install targets:
+- **Agents** → `~/.config/opencode/agents/*.md`
+- **Skills** → `~/.config/opencode/skills/<name>/SKILL.md`
+
+OpenCode project install targets:
+- **Agents** → `<project>/.opencode/agents/*.md`
+- **Skills** → `<project>/.opencode/skills/<name>/SKILL.md`
+
+OpenCode also discovers skills from Claude-compatible `.claude/skills/<name>/SKILL.md` and agent-compatible `.agents/skills/<name>/SKILL.md` paths, but Markdown agent definitions belong in `~/.config/opencode/agents/` globally or `.opencode/agents/` per project. The installer writes OpenCode agents as native `*.md` files with OpenCode frontmatter; the filename becomes the OpenCode agent name.
+
+Restart VS Code or reload the window after running VS Code installs. Restart Codex after running a Codex install. Restart OpenCode after running an OpenCode install.
 
 ### Per-project usage
 
 To install into a single project with the script:
 
 ```bash
-./setup.sh --project /path/to/your-project
+./setup.sh --copilot-project /path/to/your-project
 ```
 
 The installer creates `.github/copilot-instructions.md` if it does not already exist, and preserves an existing file so you can keep project-specific guidance there.
 
 ### Codex Usage
 
-To install system-level Codex skills and reference agent specs:
+To install system-level Codex skills and agent specs:
 
 ```bash
 ./setup.sh --codex
 ```
 
-The Codex install places this repository's skills under `~/.codex/skills/` so they can be surfaced as reusable runtime guidance.
+The Codex install places this repository's agents under `~/.codex/agents/` and skills under `~/.codex/skills/`. By default, these are symlinked back to this repository so edits here are visible after restarting Codex.
 
-The current local Codex CLI runtime exposes spawnable sub-agent types through its tool schema. In this install, that schema is limited to `default`, `explorer`, and `worker`; placing `.agent.md` files under `~/.codex/agents/` does not register additional `spawn_agent` types. Keep Codex-facing reusable behavior in skills, and treat `~/.codex/agents/*.agent.md` as role/spec files unless the runtime adds a custom-agent registration mechanism.
+With `child_agents_md` enabled in Codex, the Markdown agent specs in `~/.codex/agents/` can be used as child-agent guidance. Keep reusable methods in skills and focused role definitions in agents.
+
+### OpenCode Usage
+
+To install system-level OpenCode skills and agents:
+
+```bash
+./setup.sh --opencode
+```
+
+The OpenCode install places this repository's skills under `~/.config/opencode/skills/` and agents under `~/.config/opencode/agents/`. For a project-local install, use `./setup.sh --opencode-project /path/to/repo`.
 
 ## Structure
 
