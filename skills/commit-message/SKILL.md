@@ -9,13 +9,37 @@ description: "Use when drafting, reviewing, or normalizing Git commit messages o
 Draft concise, reviewable commit messages and P4 changelist descriptions from the shared template.
 
 ## Shared Template
-Before drafting a message, read the first available template path:
+Before drafting a message, identify which product is running this skill:
 
-1. `templates/commit-message/git-p4-commit-message-template.txt` in the current repository root.
-2. `../../templates/commit-message/git-p4-commit-message-template.txt` relative to this skill directory.
-3. `${HOME}/.codex/templates/commit-message/git-p4-commit-message-template.txt` for Codex user installs.
-4. `.github/templates/commit-message/git-p4-commit-message-template.txt` for project installs.
-5. `${HOME}/.config/Code/User/templates/commit-message/git-p4-commit-message-template.txt` for VS Code user installs.
+- Codex: use the Codex paths only.
+- Copilot: use the Copilot paths only.
+- OpenCode: use the OpenCode paths only.
+
+Do not search every product's install location. Product-specific lookup keeps the
+template selection predictable and avoids unnecessary filesystem scans.
+
+After identifying the product, read the first available template path for that
+product:
+
+### Codex
+1. `.codex/templates/commit-message/git-p4-commit-message-template.txt` in the current repository root.
+2. `${CODEX_HOME:-${HOME}/.codex}/templates/commit-message/git-p4-commit-message-template.txt`.
+
+### Copilot
+1. `.github/templates/commit-message/git-p4-commit-message-template.txt` in the current repository root.
+2. `${HOME}/.vscode-server/data/User/templates/commit-message/git-p4-commit-message-template.txt` when that VS Code server user directory exists.
+3. `${HOME}/.config/Code/User/templates/commit-message/git-p4-commit-message-template.txt`.
+
+### OpenCode
+1. `.opencode/templates/commit-message/git-p4-commit-message-template.txt` in the current repository root.
+2. `${OPENCODE_HOME:-${HOME}/.config/opencode}/templates/commit-message/git-p4-commit-message-template.txt`.
+
+If the product cannot be determined from the active agent environment, ask the
+user which product is invoking the skill instead of searching all product paths.
+
+When working directly from this llm-config source checkout, the source template
+at `templates/commit-message/git-p4-commit-message-template.txt` may be used as
+the repository-local template.
 
 Use that file as the single source of truth for message shape and allowed sections.
 
