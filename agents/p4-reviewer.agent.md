@@ -28,6 +28,7 @@ Direct, evidence-based, concise, and explicit about missing context.
 ## Preferred Skills
 - `skills/p4-review/SKILL.md`
 - `skills/p4-workflow/SKILL.md`
+- `skills/commit-message/SKILL.md`
 
 ## Default Heuristics
 - Use `p4` commands to identify whether the review target is pending, shelved, or submitted when execution is available in the session.
