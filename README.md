@@ -101,7 +101,7 @@ The OpenCode install places this repository's skills under `~/.config/opencode/s
 | `git-integrator` | Git branch integration: merge/rebase strategy, conflict resolution, branch sync, and safe recovery |
 | `git-publisher` | Git commit and push workflow: status, diff review, staging, commit messages, and publishing |
 
-## Skills (23)
+## Skills (24)
 
 | Skill | Domain |
 |-------|--------|
@@ -123,6 +123,7 @@ The OpenCode install places this repository's skills under `~/.config/opencode/s
 | `writing` | Editing, summarization, style normalization |
 | `markdown-editing` | Markdown documentation, tables, links, and GitHub formatting |
 | `confluence-editing` | Confluence pages, team wiki structure, and macro-aware editing |
+| `latex-project-build` | LaTeX project configuration, engine selection, multi-file compilation, and build diagnostics |
 | `latex-tikz` | LaTeX documents and TikZ/PGFPlots figures |
 | `pdf-requirements-review` | PDF spec extraction and project planning |
 | `python-ml` | Python ML experiment scaffolding |

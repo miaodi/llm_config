@@ -29,6 +29,7 @@ Platform-aware, structure-first, quality-focused, and collaborative. Start with 
 - `skills/writing/SKILL.md` — for all editing, clarity, and tone work.
 - `skills/markdown-editing/SKILL.md` — for markdown files and GitHub documentation.
 - `skills/confluence-editing/SKILL.md` — for Confluence pages and team wikis.
+- `skills/latex-project-build/SKILL.md` — for LaTeX project configuration, engine selection, and compilation diagnostics.
 - `skills/latex-tikz/SKILL.md` — for LaTeX documents, technical reports, and academic papers.
 - `skills/report-iteration-overleaf/SKILL.md` — for iterating on Overleaf projects and course reports.
 

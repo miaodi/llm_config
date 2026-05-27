@@ -33,6 +33,7 @@ Structured, execution-oriented, and explicit about assumptions, missing informat
 - `skills/pdf-requirements-review/SKILL.md`
 - `skills/python-ml/SKILL.md`
 - `skills/reinforcement-learning/SKILL.md`
+- `skills/latex-project-build/SKILL.md`
 - `skills/latex-tikz/SKILL.md`
 - `skills/report-iteration-overleaf/SKILL.md`
 
