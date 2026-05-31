@@ -91,6 +91,7 @@ The OpenCode install places this repository's skills under `~/.config/opencode/s
 | Agent | Description |
 |-------|-------------|
 | `agent-creator` | Custom agent and skill design for this repository |
+| `computational-learning-coach` | Low-level computational and numerical concepts taught through minimal C++ examples and learning notes |
 | `cpp-engineer` | Modern C++ design, type safety, ownership, compile-time computation |
 | `document-writer` | Markdown, Confluence, LaTeX, and report editing |
 | `p4-reviewer` | Perforce changelist review, submission readiness, changelist comments |
@@ -101,7 +102,7 @@ The OpenCode install places this repository's skills under `~/.config/opencode/s
 | `git-integrator` | Git branch integration: merge/rebase strategy, conflict resolution, branch sync, and safe recovery |
 | `git-publisher` | Git commit and push workflow: status, diff review, staging, commit messages, and publishing |
 
-## Skills (24)
+## Skills (25)
 
 | Skill | Domain |
 |-------|--------|
@@ -113,6 +114,7 @@ The OpenCode install places this repository's skills under `~/.config/opencode/s
 | `modern-cmake` | Modern CMake, target usage requirements, presets, toolchains, C++/CUDA/nvcc build diagnosis |
 | `cpp-elegance` | Modern C++ clarity, RAII, concepts, API design |
 | `cpp-performance` | C++ hot-path optimization, cache, vectorization |
+| `computational-learning-notes` | Low-level computational, numerical, hardware, and compiler concepts taught through minimal C++ demos |
 | `cuda-performance` | GPU kernel tuning, shared memory, coalescing |
 | `ncu-analysis` | Nsight Compute profiling, report extraction, and CUDA bottleneck diagnosis |
 | `sparse-linear-algebra` | Sparse matrices, iterative solvers, preconditioners, reorderings, graph sparsity |
