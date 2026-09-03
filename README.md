@@ -112,7 +112,7 @@ The OpenCode install places this repository's skills under `~/.config/opencode/s
 | `shell` | Bash, zsh, csh/tcsh scripting, terminal automation, pipelines, portability, and shell debugging |
 | `boost-build` | Boost.Build (b2/bjam), Jamfiles, toolsets, compiler error decoding, compile-time optimization |
 | `modern-cmake` | Modern CMake, target usage requirements, presets, toolchains, C++/CUDA/nvcc build diagnosis |
-| `cpp-elegance` | Modern C++ clarity, RAII, concepts, API design |
+| `cpp-elegance` | Modern C++ clarity, RAII, concepts, and SOLID-informed API design |
 | `cpp-performance` | C++ hot-path optimization, cache, vectorization |
 | `computational-learning-notes` | Low-level computational, numerical, hardware, and compiler concepts taught through minimal C++ demos |
 | `cuda-performance` | GPU kernel tuning, shared memory, coalescing |
