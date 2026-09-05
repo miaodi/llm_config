@@ -1,44 +1,28 @@
 ---
 name: python-ml
-description: "Use when writing Python for machine learning projects, experiment scaffolding, training loops, evaluation, hyperparameter management, and reproducible ML workflows."
+description: Use for Python ML data pipelines, training/evaluation code, experiment configuration, checkpoints, and reproducibility. Reinforcement-learning method and evaluation choices belong to reinforcement-learning.
 ---
 
-# Python ML Skill
+# Python ML Engineering
 
-## Purpose
-Write Python code for machine learning projects that is clear, modular, reproducible, and easy to experiment with.
+## Scope
 
-## When To Use
-Use for model implementation, experiment scaffolding, training loops, evaluation code, and result analysis in Python-based ML projects.
+Own experiment implementation and artifact integrity. `reinforcement-learning` owns RL-specific
+algorithm/evaluation decisions; `research` owns literature comparison.
 
-## Priorities
-1. Preserve correctness and reproducibility.
-2. Keep experiment structure simple and inspectable.
-3. Make it easy to compare baselines and hyperparameters.
-4. Prefer readable code over framework cleverness.
+## Method
 
-## Workflow
-1. Define the experiment interface: config, data flow, model, training, evaluation, and logging.
-2. Keep hyperparameters centralized and easy to modify.
-3. Separate reusable components from assignment-specific glue code.
-4. Add clear metrics collection and result persistence.
-5. Make it straightforward to run baselines, ablations, and repeated seeds.
+- Follow the existing framework and environment. Keep configuration explicit and persist the
+  resolved settings, code revision, dependency versions, seeds, and dataset identity with results.
+- Separate data preparation, training, evaluation, and logging without adding a framework for
+  a small experiment. Prevent split leakage and fitting preprocessing on held-out data.
+- Check shapes, dtypes, device placement, batching, loss reduction, and optimizer/gradient behavior.
+- Use the framework's training/evaluation and gradient modes deliberately; they are not synonymous.
+- Start with a small smoke run and sanity baseline before spending the full compute budget.
+- Save enough state for the intended resume semantics: weights, optimizer/scheduler, counters,
+  and RNG/data-loader state when exact continuation is required.
+- Record raw metrics and failures; do not overwrite runs silently or report only favorable seeds.
+- Seed relevant generators, but do not promise bitwise reproducibility across hardware and kernels.
 
-## Review Checklist
-- Are configs centralized?
-- Can experiments be reproduced with the same seed and settings?
-- Are train/eval paths clearly separated?
-- Are metrics, checkpoints, and logs easy to inspect?
-- Is the code easy to adapt for ablations and sweeps?
-
-## Constraints
-- Do not hide key experiment settings in scattered constants.
-- Do not optimize for clever abstractions over debugging clarity.
-- Keep dependencies and project structure appropriate for a course project.
-
-## Output
-Provide:
-- implementation plan
-- code structure recommendations
-- experiment hooks
-- evaluation and logging guidance
+Verify a small end-to-end run and the relevant checkpoint/evaluation path. Report measured
+results separately from planned experiments; do not train indefinitely to satisfy an imagined target.

@@ -1,30 +1,15 @@
 ---
 name: computational-learning-notes
-description: "Use when creating C++ learning notes or minimal experiments for low-level computational, numerical, CPU/GPU, compiler, and hardware concepts such as false sharing, floating point, registers, caches, SIMD, atomics, numerical stability, and benchmarking pitfalls."
+description: Use to teach a computational, hardware, compiler, or numerical concept through a minimal runnable example and explanatory note. Not for production optimization.
 ---
 
 # Computational Learning Notes Skill
 
-## Purpose
+## Scope
 
-Teach low-level computational and numerical concepts by turning them into small, demonstrative C++ examples with clear learning notes.
+Own pedagogy and the observable experiment. `cpp-performance` and `cuda-performance` own production optimization, not teaching examples.
 
-## When To Use
-
-Use when the user wants to understand a software/hardware concept through a minimal example, especially in a learning repository such as `~/repo/cxx_learn`.
-
-Typical topics include false sharing, floating-point behavior, registers, dependency chains, cache hierarchy, cache lines, locality, prefetching, branch prediction, SIMD, FMA, alignment, memory ordering, atomics, synchronization costs, compiler optimization, generated assembly, numerical accuracy, numerical stability, and benchmarking pitfalls.
-
-## Priorities
-
-1. Teach one concept clearly.
-2. Default to C++20 unless the user asks for another language.
-3. Prefer the smallest example that exposes the mechanism.
-4. Make the expected observation explicit.
-5. Separate deterministic correctness behavior from hardware-sensitive performance trends.
-6. State compiler, OS, CPU, build-mode, and benchmark caveats honestly.
-
-## Concept Coverage
+## Example topics
 
 - CPU caches, cache lines, spatial locality, temporal locality, prefetching, TLBs, and memory latency.
 - Cache coherence, false sharing, true sharing, thread placement, and synchronization costs.
@@ -53,7 +38,7 @@ Typical topics include false sharing, floating-point behavior, registers, depend
 
 ## Demonstrative Code Heuristics
 
-- Use C++20 and the existing build style of the target repository.
+- Use the target repository’s language level and build style; default new standalone C++ examples to C++20.
 - Keep the code close enough to the mechanism that a reader can map source lines to cache behavior, instructions, synchronization, or floating-point operations.
 - Use explicit names such as `naive`, `padded`, `strided`, `contiguous`, `branchy`, `branchless`, `scalar`, `vectorizable`, `relaxed`, `acquire_release`, `kahan`, or `pairwise`.
 - Use deterministic inputs when possible.
@@ -72,42 +57,35 @@ Prefer this structure for new or revised notes:
 # Example Name
 
 ## Concept
+
 What hardware, compiler, C++, or numerical concept this demonstrates.
 
 ## Minimal Example
+
 The smallest relevant code shape, or a pointer to the source file if the code is long.
 
 ## What To Run
+
 The configure, build, test, benchmark, or executable command.
 
 ## What To Look For
+
 The expected output, trend, comparison, or failure mode.
 
 ## Why It Happens
+
 The CPU, memory-system, compiler, C++, CUDA, or numerical mechanism behind the result.
 
 ## Caveats
+
 What depends on hardware, compiler, optimization level, OS scheduling, input size, or benchmark setup.
 
 ## Extensions
+
 Small follow-up experiments the learner can try.
 ```
 
 The note should be precise rather than long. A short explanation that names the mechanism and limitation is better than a broad tutorial.
-
-## Review Checklist
-
-- Does the example isolate one concept?
-- Is C++ the default language unless another language is clearly better?
-- Is there a visible contrast or observation?
-- Can the compiler optimize away the behavior being demonstrated?
-- Is the measured region free of avoidable setup work?
-- Are results protected from dead-code elimination?
-- Are correctness checks present for optimized, parallel, or approximate variants?
-- Are cache-line, alignment, thread-scheduling, and memory-order assumptions stated when relevant?
-- Are floating-point rounding, overflow, underflow, NaN, infinity, and associativity caveats stated when relevant?
-- Are exact numbers avoided when only hardware-sensitive trends are justified?
-- Does the note include what to run, what to look for, why it happens, and caveats?
 
 ## Constraints
 
@@ -117,15 +95,3 @@ The note should be precise rather than long. A short explanation that names the 
 - Do not hide the important mechanism behind generic abstractions, complicated templates, or large helper libraries.
 - Do not introduce non-portable code unless it is necessary for the lesson and clearly labeled.
 - Do not present undefined behavior, data races, or numerically unstable code as acceptable outside the demonstration.
-
-## Output
-
-Provide:
-
-- the concept being taught
-- the minimal C++ example or changed files
-- how to build or run it
-- what observation to expect
-- the mechanism behind the observation
-- caveats and machine-specific dependencies
-- one or two small follow-up experiments when useful

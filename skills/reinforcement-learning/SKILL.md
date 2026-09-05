@@ -1,55 +1,31 @@
 ---
 name: reinforcement-learning
-description: "Use when designing, implementing, or analyzing reinforcement learning experiments, algorithm selection, environment analysis, hyperparameter tuning, reward curves, and RL evaluation."
+description: Use for RL task formulation, algorithm/update correctness, environment termination semantics, sample budgets, and policy evaluation. Python project scaffolding belongs to python-ml.
 ---
 
-# Reinforcement Learning Skill
+# Reinforcement Learning
 
-## Purpose
-Design, implement, evaluate, and analyze reinforcement learning experiments with clear baselines, sound metrics, and algorithm-appropriate hyperparameters.
+## Scope
 
-## When To Use
-Use for RL assignments, environment analysis, algorithm selection, training design, evaluation planning, hyperparameter tuning, and result interpretation.
+Own RL methodology and interpretation. `python-ml` handles implementation structure and artifacts.
 
-## Priorities
-1. Match the algorithm to the environment and project goal.
-2. Establish baselines before tuning advanced methods.
-3. Evaluate stability, sample efficiency, and variance across seeds.
-4. Analyze why a method works or fails, not just whether reward increased.
+## Method
 
-## Workflow
-1. Characterize the task: environment type, action space, observability, reward structure, horizon, and stochasticity.
-2. Choose reasonable baselines and one or two advanced algorithms that fit the setting.
-3. Define training budget, evaluation protocol, and success metrics before running experiments.
-4. Select algorithm-specific hyperparameters to tune rather than using a generic sweep blindly.
-5. Run repeated seeds and compare convergence speed, stability, and final performance.
-6. Suggest plots that reveal behavior, not just final scores.
-7. Analyze output in terms of variance, convergence, sample efficiency, brittleness, and failure modes.
+1. Characterize observations, actions, partial observability, reward, horizon, stochasticity,
+   and reset/termination semantics. Match the method to these properties and the allowed budget.
+2. Establish a suitable baseline; add complexity only when it addresses an observed limitation
+   or a requested comparison. Do not add advanced algorithms merely to complete a template.
+3. Check update semantics: on/off-policy data, bootstrap masks, target updates, advantage/return
+   computation, exploration, clipping, and recurrent-state handling as applicable.
+4. Distinguish true termination from time-limit truncation. Bootstrap according to the task's
+   terminal definition and algorithm; verify the environment API actually provides the needed state.
+5. Define held-out evaluation, training budget in environment steps and wall time, checkpoint
+   selection, action stochasticity, and normalization behavior before comparing methods.
+6. Compare repeated independent runs when making stability claims. Separate variation across
+   training seeds from evaluation episodes; a single seed is a smoke test, not robust evidence.
+7. Plot raw and, if useful, smoothed curves with smoothing disclosed. Report sample efficiency,
+   final policy quality, failure rates, and uncertainty appropriate to available runs.
 
-## Suggested Plots
-- reward versus environment steps
-- reward versus wall-clock time
-- mean and variance across seeds
-- ablation plots for key design choices
-- sensitivity plots for critical hyperparameters
-- success rate or episode length where relevant
-- policy/value diagnostics when they explain behavior
-
-## Hyperparameter Guidance
-- Tune algorithm-specific parameters first: learning rate, target-update cadence, entropy coefficient, clipping parameter, discount factor, lambda, rollout length, batch size, replay size, exploration schedule, and network size.
-- Prefer small targeted sweeps guided by algorithm behavior.
-- Track both best setting and sensitivity, not only the maximum score.
-
-## Constraints
-- Do not recommend advanced RL algorithms without explaining why they fit the environment.
-- Do not trust a single seed.
-- Do not present unstable reward curves without discussing variance and failure modes.
-- Distinguish training reward from evaluation performance.
-
-## Output
-Provide:
-- algorithm recommendation
-- baseline plan
-- hyperparameters to try
-- plots to generate
-- output analysis and interpretation guidance
+Tune a few parameters tied to the failure hypothesis. Keep evaluation data out of repeated
+unreported selection, compare methods under stated budgets, and distinguish training reward
+from evaluation performance. Never fabricate a convergence or success claim from incomplete runs.

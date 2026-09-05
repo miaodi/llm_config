@@ -1,54 +1,25 @@
 ---
 name: research
-description: "Use when investigating technical topics, comparing sources, evaluating approaches, performing literature review, or synthesizing findings."
+description: Use when an answer requires gathering and comparing external evidence, literature, or technical sources. Does not own ordinary code inspection or domain algorithm implementation.
 ---
 
-# Research Skill
+# Research
 
-## Purpose
-Support investigation, source comparison, and structured synthesis for technical topics.
+## Scope
 
-## When To Use
-Use for technical evaluation, literature review, competitive analysis, architecture comparison, algorithm selection, or any task that requires gathering and weighing evidence before making a decision.
+Own evidence gathering and synthesis. Domain skills interpret specialized methods; `writing`
+organizes prose. Use existing reliable source material before launching a broad search.
 
-## Priorities
-1. Answer the actual question, not a nearby easier one.
-2. Prefer primary sources over summaries and surveys.
-3. Prefer recent sources when the field is fast-moving.
-4. Separate confirmed facts from inferences and speculation.
-5. Calibrate confidence — state what is well-supported, weakly supported, and unknown.
+## Method
 
-## Workflow
-1. Restate the research question and identify scope constraints (time, depth, domain).
-2. Identify the types of sources needed: papers, documentation, benchmarks, codebases, specs.
-3. Gather primary evidence first; use surveys and secondary sources to fill gaps.
-4. For each claim, note the source, its credibility, and whether it is corroborated.
-5. Identify contradictions between sources and explain why they disagree if possible.
-6. Assess the overall confidence level for each finding.
-7. List open questions and gaps that could not be resolved.
-8. Synthesize into a structured summary with actionable recommendations.
+1. Define the decision or question and relevant constraints from the request.
+2. Prefer primary documentation, papers, specifications, and source code. Match evidence to the
+   applicable version, hardware, dataset, and date; recent does not automatically mean better.
+3. Read the supporting passage rather than relying on a search snippet or an abstract alone.
+4. Track claim, source, applicability, and uncertainty. Resolve disagreements by comparing
+   assumptions and methods rather than counting citations.
+5. Separate observations, authors' claims, and your inferences. Include contrary evidence when material.
+6. Stop when the question is answered to the needed confidence or further evidence is unavailable.
 
-## Review Checklist
-- Is the research question clearly scoped?
-- Are claims backed by identifiable sources?
-- Are primary sources preferred over secondhand summaries?
-- Are contradictions between sources acknowledged and explained?
-- Is confidence calibrated (high / medium / low) for each finding?
-- Are assumptions separated from evidence?
-- Are open questions and gaps explicitly listed?
-- Is the synthesis actionable, not just descriptive?
-
-## Constraints
-- Do not present speculation as established fact.
-- Do not cherry-pick sources that support a predetermined conclusion.
-- Do not over-cite surveys when primary sources are available.
-- Do not omit contradictory evidence.
-- State clearly when evidence is thin or when the question cannot be fully answered.
-
-## Output
-Provide:
-- scoped research question
-- findings with confidence levels and source references
-- contradictions or disagreements between sources
-- open questions and gaps
-- actionable recommendations or next steps
+Cite sources near the claims they support. Do not invent references, measurements, or certainty.
+Scale the result to the question; formal confidence tables and open-question lists are optional.

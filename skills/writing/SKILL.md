@@ -1,54 +1,23 @@
 ---
 name: writing
-description: "Use when editing, rewriting, summarizing, or normalizing style for documentation, emails, proposals, reports, and copy edits."
+description: Use to draft or revise prose, arguments, summaries, and tone. Does not own Markdown syntax, citation research, commit-message schemas, or document build tooling.
 ---
 
-# Writing Skill
+# Writing
 
-## Purpose
-Support editing, rewriting, summarization, and style normalization for technical and professional text.
+## Scope
 
-## When To Use
-Use for documentation, emails, proposals, reports, READMEs, commit messages, PR descriptions, and any text that needs to be clearer, more concise, or better structured.
+Own audience, meaning, argument, and sentences. Use `markdown-editing` for rendering defects,
+`research` for evidence gathering, and `commit-message` for Git/P4 message structure only when needed.
 
-## Priorities
-1. Clarity — the reader should understand on first pass.
-2. Structure — organize before polishing sentences.
-3. Concision — remove words that do not carry meaning.
-4. Tone — match the audience and context.
-5. Correctness — grammar, spelling, and factual accuracy.
+## Method
 
-## Workflow
-1. Identify the audience, purpose, and format constraints.
-2. Read the full source text before making changes.
-3. Fix structure first: reorder sections, split or merge paragraphs, ensure the main point comes early.
-4. Clarify: replace vague language with specific statements, unpack dense sentences.
-5. Cut: remove filler, redundancy, and unnecessary qualifiers.
-6. Adjust tone: match formality level to audience (technical peer, manager, external reader).
-7. Final pass: grammar, spelling, punctuation, and consistency.
-8. Verify the revised text preserves the original meaning.
-
-## Review Checklist
-- Is the main point in the first paragraph?
-- Does each paragraph carry a single idea?
-- Can any sentence be removed without losing meaning?
-- Is passive voice justified where used, or should it be active?
-- Are transitions between sections smooth?
-- Is jargon appropriate for the audience?
-- Is the text scannable (headings, bullets, short paragraphs) where the format allows?
-- Does the revised text preserve the original intent?
-
-## Constraints
-- Do not bury the lead — state the main point up front.
-- Do not add content or claims that were not in the original.
-- Do not use jargon the target audience would not understand.
-- Do not edit for style before structure is right.
-- Do not over-format simple text (e.g., unnecessary bullet lists for flowing prose).
-- Preserve the author's voice when doing light edits; rewrite voice only when asked.
-
-## Output
-Provide:
-- revised text
-- brief rationale for structural changes (if any)
-- tone and audience notes (if relevant)
-- any suggestions the author should verify
+- Infer audience and purpose from the request and source before asking questions.
+- Read the relevant text in full. Preserve facts, qualifications, and the author's intent.
+- Put the main point early; organize supporting evidence before polishing sentences.
+- Use concrete subjects and verbs. Remove repetition, vague claims, and ornamental transitions.
+- Keep paragraphs connected. Use tables or lists when relationships are easier to compare that way.
+- Match the requested edit depth: a copy edit preserves voice; a rewrite may change structure.
+- When drafting new content, distinguish supplied facts from proposed language and missing evidence.
+  Do not invent results, quotations, or citations to complete a narrative.
+- Return the revised artifact. Explain consequential changes only when that helps review.

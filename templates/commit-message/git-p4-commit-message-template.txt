@@ -1,34 +1,16 @@
-# Commit Message Template (Git & P4)
+# Shared personal Git/P4 message format. Remove comments and unused placeholders.
+# Scope is optional. Keep the summary concrete and preferably under 72 characters.
+type(scope): describe the change
 
-# Usage:
-# - For Git: Use this as your commit message template.
-# - For P4: Use this as your changelist description template and append
-#   the actual STARs ID as the final line.
+[Optional body: resulting behavior, reason, and material tradeoffs]
 
-# Format:
-type(scope): short summary
+[Optional validation: checks actually performed and outcomes, or a relevant limitation]
 
-[Optional longer description]
+[Optional footer: supplied issue/review references or breaking-change details]
 
-[Optional validation notes]
+[For P4 descriptions only: STARs: <actual ID>]
 
-[Optional footer: references, breaking changes, etc.]
-
-[For P4 only: STARs: <STARs ID>]
-
-# Types: feat, fix, refactor, docs, style, test, chore, perf, build, ci, etc.
-# Scope: optional; omit parentheses when no scope applies.
-# Short summary: imperative or descriptive, concise, max 72 chars.
-# Longer description: what changed and why, if needed.
-# Validation notes: tests, builds, manual checks, or "Not run".
-# Footer: issue references, breaking changes, review IDs, STARs ID, etc.
-
-# Example:
-feat(core): add user authentication
-
-Implements JWT-based authentication for the core API.
-Handles login, logout, and token refresh.
-
-BREAKING CHANGE: Old login endpoints removed.
-
-STARs: STAR-123456
+# Suggested types: feat, fix, refactor, docs, style, test, chore, perf, build, ci.
+# Do not invent validation or identifiers. Omit empty optional sections.
+# The personal P4 convention requires the actual STARs ID as the final line.
+# Git messages do not require STARs metadata unless the project requests it.

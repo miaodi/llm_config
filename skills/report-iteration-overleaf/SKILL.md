@@ -1,50 +1,27 @@
 ---
 name: report-iteration-overleaf
-description: "Use when iterating on a course report, reviewing previous submissions, improving LaTeX structure and analysis, or preparing sources for Overleaf upload or Git sync."
+description: Use to revise a report against prior feedback or new results, or package/sync existing Overleaf sources. Not for standalone prose edits, TikZ drawing, or TeX build failures.
 ---
 
-# Report Iteration And Overleaf Skill
+# Report Iteration and Overleaf
 
-## Purpose
-Iterate on a course report by reviewing previous reports, improving the structure and analysis, and preparing updated LaTeX sources for Overleaf workflows.
+## Scope
 
-## When To Use
-Use when a project includes a prior report, when the next report should build on an earlier submission, or when the final output needs to be pushed back to Overleaf.
+Own continuity between report versions and submission packaging. Use `writing` for prose,
+`latex-tikz` for figures, and `latex-project-build` for compilation only as needed.
 
-## Priorities
-1. Understand what the previous report did well and where it was weak.
-2. Preserve useful structure while improving technical clarity and analysis quality.
-3. Keep the LaTeX project organized and easy to maintain.
-4. Work with the actual Overleaf source workflow available: local files, ZIP import/export, or Git integration.
+## Method
 
-## Workflow
-1. Read the previous report and identify reusable structure, recurring notation, figure conventions, and analysis gaps.
-2. Separate what should be reused from what should be replaced or strengthened.
-3. Align the new report with the current assignment requirements and latest experiment results.
-4. Update sections, figures, captions, and conclusions so they reflect the new work rather than lightly edited old text.
-5. Keep the LaTeX source organized with clear figure paths, section files, and reproducible plot generation where practical.
-6. If Overleaf source is available locally, edit that source directly.
-7. If Overleaf Git integration is available, use the Git-backed workflow carefully and preserve the project structure.
-8. If only ZIP import/export is available, prepare a clean uploadable project directory.
+1. Read the current requirements, previous report, feedback, and available new results.
+2. Map each requested revision to evidence and a section, table, figure, or appendix.
+3. Reuse sound structure and notation; reassess claims, conclusions, dates, and numbers against
+   current experiments. Do not carry forward unsupported conclusions.
+4. Make the requested revision depth explicit in the artifact. A formatting-only request does
+   not require new experiments or an unsolicited rewrite of the argument.
+5. Validate cross-references and result provenance, then compile when sources/tools are available.
+6. Package the root document, bibliography, required styles, figures, and data assets. Exclude
+   generated clutter unless submission rules require it.
+7. Use only the Overleaf workflow actually available: local sources, ZIP, or a configured remote.
+   `git-workflow` handles integration conflicts. Publishing requires authorization in the task.
 
-## Review Checklist
-- What is worth reusing from the previous report?
-- What analysis was weak, incomplete, or overly vague?
-- Do the new plots and tables answer the actual project questions?
-- Are captions and figure references informative?
-- Is the LaTeX project clean enough to upload or sync back to Overleaf?
-- Is the Overleaf workflow path actually available, or does it still need user input?
-
-## Constraints
-- Do not copy old conclusions forward without re-validating them against the current experiments.
-- Do not assume direct Overleaf access unless the project files or Git integration details are provided.
-- Do not produce cosmetic report updates without improving the technical argument.
-- Prefer concise, meaningful section and figure revisions over wholesale rewriting without purpose.
-
-## Output
-Provide:
-- what to reuse from the previous report
-- what to change in the current report
-- report structure recommendations
-- figure and caption recommendations
-- the practical path to update or upload the Overleaf project
+Report whether the result was edited locally, packaged, or synced; these are different outcomes.

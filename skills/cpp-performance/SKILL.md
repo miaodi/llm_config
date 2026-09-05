@@ -1,68 +1,34 @@
 ---
 name: cpp-performance
-description: "Use when optimizing C++ runtime performance, hot paths, allocations, cache efficiency, vectorization, branch reduction, parallelization, data-oriented design, and concurrency overhead."
+description: Use to measure and improve CPU-side C++ latency, throughput, allocations, locality, vectorization, or concurrency cost. Excludes GPU kernel tuning and compile-time optimization.
 ---
 
-# C++ Performance Skill
+# C++ Runtime Performance
 
-## Purpose
-Optimize C++ code for runtime performance, memory efficiency, and predictable behavior without weakening correctness.
+## Scope
 
-## When To Use
-Use for hot-path optimization, allocator pressure reduction, cache efficiency, vectorization opportunities, branch reduction, routine parallelization, concurrency overhead analysis, and data-oriented redesign.
+Own CPU performance experiments and implementation cost. `cpp-elegance` owns API design;
+`cuda-performance` owns GPU work; `computational-learning-notes` owns teaching demonstrations.
 
-## Priorities
-1. Preserve correctness.
-2. Measure before optimizing.
-3. Optimize hot paths before cold code.
-4. Prefer algorithmic and data-layout wins before micro-optimizations.
-5. Prefer the smallest change that is likely to produce measurable impact.
+## Method
 
-## Workflow
-1. Identify the hot path from profiling data or benchmarks.
-2. Confirm the performance goal: latency, throughput, memory footprint, or tail behavior.
-3. Inspect algorithmic complexity before tuning low-level details.
-4. Check allocations, copies, temporary objects, and ownership patterns.
-5. Check data layout, cache locality, branch behavior, access patterns, and whether a data-oriented representation would better match the workload.
-6. Check whether unpredictable branches can be removed, hoisted, turned into table lookups, masks, conditional moves, or other branchless forms without harming correctness.
-7. Check whether the routine can be parallelized safely across data, tasks, or pipeline stages, and estimate whether the workload size justifies threading overhead.
-8. Check whether abstractions prevent inlining, vectorization, or efficient code generation.
-9. Check synchronization, contention, false sharing, and scheduling overhead in concurrent code.
-10. Propose the smallest high-confidence change first.
-11. Re-measure under the same conditions and report absolute and relative impact.
+1. Define the workload and metric: latency, throughput, memory, or tail behavior. Establish a
+   representative baseline with compiler flags, hardware, inputs, warmup, and repetitions recorded.
+2. Locate significant cost with profiling. Inspect algorithmic work, allocations/copies,
+   memory access, vectorization barriers, branches, and synchronization only where relevant.
+3. Form a testable hypothesis and change one coherent mechanism at a time.
+4. Verify outputs before comparing speed. Control setup costs, dead-code elimination, input
+   distribution, scheduling, and measurement noise; report absolute and relative results.
+5. Check end-to-end impact and adverse cases. A local speedup can lose through conversion,
+   allocation, contention, or code-size overhead elsewhere.
 
-## Review Checklist
-- Is this code on a measured hot path?
-- Is the current algorithm appropriate for the workload?
-- Are unnecessary allocations, copies, or temporaries present?
-- Is data layout aligned with access patterns?
-- Would a data-oriented layout improve locality, SIMD use, or traversal efficiency?
-- Are containers appropriate for the usage pattern?
-- Are unpredictable branches hurting throughput on the hot path?
-- Can branch-heavy logic be rewritten in a branchless form without making the code unsafe or opaque?
-- Can the routine be parallelized across independent work items?
-- Is the problem size large enough to justify parallel overhead?
-- Is the compiler likely blocked from inlining or vectorizing?
-- Are branches predictable on the common path?
-- Is synchronization heavier than necessary?
-- Could false sharing or cache contention be present?
-- Is the benchmark representative of production behavior?
+## Decision checks
 
-## Constraints
-- Do not claim performance improvements without measurement.
-- Do not trade clarity for low-level tricks unless the code is proven hot.
-- Do not force data-oriented rewrites unless the measured bottleneck is really driven by layout or traversal costs.
-- Do not force branchless code where branches are already predictable or the transformed code becomes less maintainable without measurable gain.
-- Do not parallelize routines unless independence, granularity, and memory behavior make the speedup plausible.
-- Do not optimize microbenchmarks while ignoring end-to-end impact.
-- State tradeoffs in readability, portability, compile time, and maintenance cost.
-- Call out numerical or semantic risks if optimizations may change behavior.
+- Data layout should follow access patterns, not a blanket preference for AoS or SoA.
+- Branchless transforms may increase work; inspect generated code when the hypothesis depends on it.
+- Parallelism needs independence and useful granularity. Account for false sharing, reductions,
+  synchronization, NUMA placement, and thread startup when relevant.
+- Floating-point reassociation, reduced precision, and approximate arithmetic change semantics;
+  evaluate error and determinism along with time.
 
-## Output
-Provide:
-- the likely bottleneck
-- the reason it is expensive
-- the proposed optimization
-- why it is expected to help
-- the main risks or tradeoffs
-- the validation plan
+If execution is unavailable, label proposals as hypotheses and give a focused validation path.

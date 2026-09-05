@@ -1,44 +1,24 @@
 ---
 name: latex-tikz
-description: "Use when creating LaTeX documents, TikZ figures, PGFPlots, algorithm diagrams, architecture schematics, or report-ready plots for technical writeups."
+description: Use to author or repair TikZ/PGFPlots figures, diagram layout, labels, axes, or reusable styles. Not for general LaTeX prose or whole-project compilation.
 ---
 
-# LaTeX TikZ Skill
+# TikZ and PGFPlots
 
-## Purpose
-Produce clear LaTeX and TikZ figures for technical reports, project writeups, and polished explanatory diagrams.
+## Scope
 
-## When To Use
-Use for course reports, algorithm diagrams, experimental schematics, architecture figures, and report-ready plots that should be authored directly in LaTeX/TikZ.
+Own figure source and visual encoding. `latex-project-build` owns compilation;
+`writing` and `report-iteration-overleaf` own report text and argument.
 
-## Priorities
-1. Make the figure communicate one clear idea.
-2. Keep TikZ structure readable and maintainable.
-3. Match the visual emphasis to the argument in the report.
-4. Prefer consistency in naming, spacing, and styling.
+## Method
 
-## Workflow
-1. Decide whether the figure is conceptual, schematic, or data-driven.
-2. For conceptual figures, use TikZ directly with reusable styles and explicit layout.
-3. For data-driven plots, prefer a clean pathway from experiment outputs to LaTeX-friendly plotting, and use TikZ/PGFPlots when practical.
-4. Keep labels concise and mathematically precise.
-5. Make the figure integrate cleanly into the surrounding report text.
-
-## Review Checklist
-- Does the figure answer a specific question?
-- Is TikZ the right tool for this plot or diagram?
-- Are labels concise and readable?
-- Are axes, legends, and captions aligned with the experiment narrative?
-- Is the figure simple enough to maintain?
-
-## Constraints
-- Do not create ornate TikZ that is hard to edit for little benefit.
-- Do not use TikZ for dense data plots if it makes iteration impractical without a clear report-quality benefit.
-- Prefer reusable styles over repeated formatting noise.
-
-## Output
-Provide:
-- figure recommendation
-- TikZ or PGFPlots structure
-- caption guidance
-- integration notes for the LaTeX report
+- Identify the figure's question, intended dimensions, and surrounding notation.
+- Use TikZ for diagrams and PGFPlots for manageable data plots; use conventional plotting tools
+  for dense datasets when that gives a smaller, more reproducible artifact.
+- Keep styles reusable and layout explicit. Prefer clear grouping over decorative complexity.
+- Preserve data provenance; label quantities and units, explain normalization, and choose axes
+  and scales that do not conceal relevant effects.
+- Keep labels legible at the final document size. Check clipping, overlap, color contrast,
+  legends, and caption consistency.
+- Compile through the project's existing workflow and inspect the rendered figure when possible.
+- Deliver editable source and any referenced data/assets, not just an image with no reproduction path.

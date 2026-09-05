@@ -1,37 +1,25 @@
 ---
 name: pdf-requirements-review
-description: "Use when reading a PDF project spec, course assignment, rubric, or requirements document to extract deliverables, constraints, and create an execution plan."
+description: Use to extract deliverables and acceptance criteria from a PDF specification or rubric. Not for arbitrary PDF summaries or performing the whole project.
 ---
 
-# PDF Requirements Review Skill
+# PDF Requirements Review
 
-## Purpose
-Read a project specification from a PDF and turn it into an actionable execution plan with explicit deliverables, constraints, and risks.
+## Scope
 
-## When To Use
-Use when a course assignment, project spec, rubric, or paper-style requirements document is provided as a PDF.
+Own requirements extraction and traceability. Implementation, experiment design, and report
+writing use their respective skills after the requirements are understood.
 
-## Priorities
-1. Extract the actual deliverables and grading signals.
-2. Separate explicit requirements from inferred expectations.
-3. Identify missing information early.
-4. Convert the spec into a practical implementation and experimentation plan.
+## Method
 
-## Workflow
-1. Read the PDF carefully and identify required outputs, milestones, formatting rules, datasets, environments, and evaluation metrics.
-2. Extract any explicit constraints on methods, libraries, runtime, report length, or submission format.
-3. List ambiguities, open questions, and assumptions separately from confirmed requirements.
-4. Break the project into phases: setup, implementation, experiments, analysis, and report.
-5. Produce a step-by-step plan with dependencies and intermediate checkpoints.
+- Read all relevant pages, including appendices, tables, captions, and submission instructions.
+- Use rendered pages when extraction loses formulas, table relationships, or layout; use OCR
+  for scans and verify uncertain text against the image.
+- Record each requirement with a page/section, deliverable, constraint, and verification method.
+- Distinguish mandatory requirements, optional suggestions, grading weights, and your inferences.
+- Preserve exact limits, formats, datasets, deadlines, and allowed methods where provided.
+- Identify contradictions and consequential missing information; continue independent work
+  while seeking clarification only when needed.
+- Order work by dependencies and acceptance checks rather than inventing a standard project plan.
 
-## Constraints
-- Do not invent requirements that are not in the PDF.
-- Mark inferred expectations explicitly.
-- Call out missing information that could change the technical approach.
-
-## Output
-Provide:
-- extracted requirements
-- deliverables and constraints
-- open questions
-- a step-by-step project plan
+Return a compact requirements map and next steps. Note unreadable or unreviewed pages explicitly.

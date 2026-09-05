@@ -1,30 +1,20 @@
 ---
 name: Agent Name
-description: "Use when {trigger phrases with keywords for discovery}"
-tools: [read, edit, search]
+description: "Own one concrete outcome; state the nearest excluded responsibility."
+tools: [read, edit, search, execute]
 ---
 
 # Agent Name
 
-## Role
-What this agent is responsible for.
+## Responsibility
 
-## Goals
-- Goal 1
-- Goal 2
+Define the outcome this role owns. Choose tools needed to finish, including validation.
 
-## Non-Goals
-- What it should avoid doing
+## Skills
 
-## Operating Style
-Tone, brevity, rigor, and collaboration expectations.
+Name only relevant skills and when to load them. Keep reusable procedures in those skills.
 
-## Preferred Skills
-- `skills/<skill-name>/SKILL.md`
+## Completion
 
-## Default Heuristics
-- Heuristic 1
-- Heuristic 2
-
-## Escalation Rules
-When to ask for clarification or hand off.
+State acceptance evidence and the boundary with neighboring roles. A boundary is not a
+mandatory handoff. Avoid copying shared preferences or inventing approval requirements.

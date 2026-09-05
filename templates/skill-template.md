@@ -1,31 +1,20 @@
 ---
 name: skill-name
-description: "Use when {trigger phrases with keywords for discovery}"
+description: "Use for a specific decision or procedure. Exclude the nearest overlapping concern."
 ---
 
 # Skill Name
 
-## Purpose
-What this skill does.
+## Scope
 
-## When To Use
-Describe the trigger conditions.
+State the single responsibility and adjacent owners. Match name to the directory.
 
-## Priorities
-1. Priority 1
-2. Priority 2
+## Method
 
-## Workflow
-1. First step
-2. Second step
-3. Third step
+Give concrete steps and domain-specific invariants. Omit generic advice already supplied by
+the host or shared preferences. Reference version-specific documentation instead of guessing.
 
-## Review Checklist
-- Check 1
-- Check 2
+## Verification
 
-## Constraints
-Important rules or limits.
-
-## Output
-What the skill should produce.
+State the evidence needed for this procedure. Scale output to the task; do not require
+empty report sections, automatic delegation, or permission questions for authorized work.
