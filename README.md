@@ -48,8 +48,16 @@ Ask: **Use paper-reviewer to review [paper title, DOI, or Zotero key].**
 The reviewer uses the `paper-review` skill for a consistent structure, accessible
 lemma-to-theorem explanations, and a separately labelled critical assessment.
 Reviews support Markdown/LaTeX and verified Zotero references. Zotero MCP is an
-optional, separately configured source connector; no credentials or Obsidian vault
-path are stored in this repository. Without Zotero, provide the paper or a source URL.
+optional, separately configured source connector; no credentials or absolute
+Obsidian vault paths are stored in this repository. Without Zotero, provide the paper or a source URL.
+
+Ask: **Use paper-discussion to help me understand [paper title, DOI, or Zotero key].**
+It starts from an existing Obsidian review, verifies details against the original
+paper, and teaches through focused questions, intuition, worked equations, and
+proof steps. It does not regenerate the full review by default. Ask it to save a
+discussion recap when you want durable learning notes linked to the review.
+The preferred vault name and review subfolder live in `memory/paper-reading.md`;
+the actual vault path is resolved locally.
 
 ### Copies, links, and updates
 
@@ -150,6 +158,7 @@ See [skill and agent ownership](docs/skill-map.md) for routing boundaries and th
 | `computational-learning-coach` | Low-level computational and numerical concepts taught through minimal C++ examples and learning notes |
 | `cpp-engineer` | Modern C++ design, type safety, ownership, compile-time computation |
 | `paper-reviewer` | Consistent paper reviews, accessible proof roadmaps, and separate critical assessments |
+| `paper-discussion` | Interactive paper understanding, starting from existing Obsidian reviews |
 | `document-writer` | Markdown, Confluence, LaTeX, and report editing |
 | `p4-reviewer` | Read-only Perforce changelist and shelf defect review |
 | `p4-engineer` | Perforce sync, integration/resolve, changelist/shelf operations, and description generation/updates |
@@ -160,7 +169,7 @@ See [skill and agent ownership](docs/skill-map.md) for routing boundaries and th
 | `git-integrator` | Git branch integration: merge/rebase strategy, conflict resolution, branch sync, and safe recovery |
 | `git-publisher` | Git commit and push workflow: status, diff review, staging, commit messages, and publishing |
 
-## Skills (28)
+## Skills (29)
 
 | Skill | Domain |
 |-------|--------|
@@ -182,6 +191,7 @@ See [skill and agent ownership](docs/skill-map.md) for routing boundaries and th
 | `p4-review` | Perforce code review and changelist comments |
 | `p4-workflow` | Perforce changelist and shelf management |
 | `paper-review` | Individual paper contributions, main results, proof dependencies, and critical assessment |
+| `paper-discussion` | Guided paper discussion, equation walkthroughs, and adaptive analysis explanations |
 | `research` | Technical investigation and synthesis |
 | `writing` | Editing, summarization, style normalization |
 | `markdown-editing` | Markdown documentation, tables, links, and GitHub formatting |
