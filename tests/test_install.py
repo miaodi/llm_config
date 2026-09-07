@@ -5,6 +5,7 @@ import io
 import os
 from pathlib import Path
 import shutil
+import subprocess
 import sys
 import tempfile
 import tomllib
@@ -19,7 +20,7 @@ installer = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(installer)
 
 
-class InstallTests(unittest.TestCase):
+class InstallFixture:
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='llm-config-test-')
         self.addCleanup(self.temp.cleanup)
@@ -39,6 +40,8 @@ class InstallTests(unittest.TestCase):
         with patch.object(sys, 'argv', ['setup.sh', *map(str, args)]), contextlib.redirect_stdout(io.StringIO()):
             installer.main()
 
+
+class InstallTests(InstallFixture, unittest.TestCase):
     def test_all_targets_repeat_and_mode_switch(self):
         for product in ('codex', 'copilot', 'opencode'):
             for local in (False, True):
@@ -180,6 +183,188 @@ class ContentTests(unittest.TestCase):
                 self.assertLessEqual(len(meta['description']), 1024)
             for name in re.findall(r'skills/([a-z0-9-]+)/SKILL\.md', body):
                 self.assertTrue((ROOT / 'skills' / name / 'SKILL.md').exists(), (path, name))
+
+
+class ExtendedInstallTests(InstallFixture, unittest.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.source = self.root / 'fixture source'
+        for folder in ('skills', 'agents', 'templates', 'docs', 'memory'):
+            (self.source / folder).mkdir(parents=True)
+        skill = self.source / 'skills/example'
+        skill.mkdir()
+        (skill / 'SKILL.md').write_text(
+            '---\nname: example\ndescription: Example skill\n---\nExample instructions.\n')
+        self.agent = self.source / 'agents/example.agent.md'
+        self.agent.write_text(
+            '---\nname: example\ndescription: Example agent\ntools: [read, edit]\n---\n'
+            'Use skills/example/SKILL.md and `docs/guide.md`.\n')
+        (self.source / 'docs/guide.md').write_text('Guide')
+        self.source_mock = patch.object(installer, 'SOURCE', self.source)
+        self.source_mock.start()
+        self.addCleanup(self.source_mock.stop)
+
+    def test_every_memory_reaches_global_instructions_and_agents_on_update(self):
+        (self.source / 'memory/z.md').write_text('Unique final preference')
+        (self.source / 'memory/a.md').write_text('Unique first preference')
+        self.run_install('--codex')
+        base = self.user / '.codex'
+        for text in ((base / 'AGENTS.md').read_text(),
+                     tomllib.loads((base / 'agents/example.toml').read_text())['developer_instructions']):
+            self.assertLess(text.index('Unique first preference'), text.index('Unique final preference'))
+        (self.source / 'memory/a.md').write_text('Replacement preference')
+        (self.source / 'memory/z.md').unlink()
+        self.run_install('--codex')
+        for text in ((base / 'AGENTS.md').read_text(),
+                     tomllib.loads((base / 'agents/example.toml').read_text())['developer_instructions']):
+            self.assertIn('Replacement preference', text)
+            self.assertNotIn('Unique first preference', text)
+            self.assertNotIn('Unique final preference', text)
+
+    def test_generated_instructions_roundtrip_special_characters(self):
+        special = 'Unicode: α 中文; quotes: "hello"; backslash: \\; newline:\nnext line'
+        with self.agent.open('a') as f:
+            f.write(special)
+        self.run_install('--codex')
+        base = self.user / '.codex'
+        result = tomllib.loads((base / 'agents/example.toml').read_text())
+        self.assertIn(special, result['developer_instructions'])
+        self.assertIn(str(self.user / '.agents/skills/example/SKILL.md'), result['developer_instructions'])
+        self.assertIn(str(base / 'llm-config/docs/guide.md'), result['developer_instructions'])
+        self.assertNotIn('sandbox_mode', result)
+
+    def test_invalid_sources_fail_before_destination_writes(self):
+        cases = [
+            'no frontmatter',
+            '---\n- not a mapping\n---\nbody',
+            '---\nnull\n---\nbody',
+            '---\nname: example\n---\nbody',
+            '---\nname: example\ndescription: 42\ntools: [read]\n---\nbody',
+            '---\nname: example\ndescription: ok\ntools: read\n---\nbody',
+            '---\nname: example\ndescription: ok\ntools: [unknown]\n---\nbody',
+            '---\nname: example\ndescription: ok\ntools: [[read]]\n---\nbody',
+        ]
+        for source in cases:
+            with self.subTest(source=source):
+                self.agent.write_text(source)
+                with self.assertRaises(ValueError):
+                    self.run_install('--codex')
+                self.assertFalse((self.user / '.codex').exists())
+                self.assertFalse((self.user / '.agents').exists())
+
+    def test_skill_validation_rejects_bad_name_and_description(self):
+        skill = self.source / 'skills/example/SKILL.md'
+        for name, description in [('different', 'ok'), ('example', 'x' * 1025)]:
+            with self.subTest(name=name, length=len(description)):
+                skill.write_text(f'---\nname: {name}\ndescription: {description}\n---\nbody')
+                with self.assertRaises(ValueError):
+                    self.run_install('--codex')
+                self.assertFalse((self.user / '.codex').exists())
+
+    def test_marker_errors_preserve_existing_file_and_make_no_install(self):
+        dest = self.project / 'AGENTS.md'
+        for text in [installer.END, installer.END + installer.BEGIN,
+                     installer.BEGIN + installer.END + installer.BEGIN + installer.END]:
+            with self.subTest(text=text):
+                dest.write_text(text)
+                with self.assertRaises(ValueError):
+                    self.run_install('--codex-project', self.project)
+                self.assertEqual(text, dest.read_text())
+                self.assertFalse((self.project / '.codex').exists())
+                self.assertFalse((self.project / '.agents').exists())
+
+    def test_managed_update_preserves_prefix_suffix_and_unrelated_files(self):
+        base = self.user / '.codex'
+        (base / 'agents').mkdir(parents=True)
+        unrelated = base / 'agents/custom.toml'
+        unrelated.write_text('user-owned content')
+        dest = base / 'AGENTS.md'
+        dest.write_text('Prefix\n' + installer.BEGIN + '\nOld block\n' + installer.END + '\nSuffix\n')
+        self.run_install('--codex')
+        self.assertTrue(dest.read_text().startswith('Prefix\n' + installer.BEGIN))
+        self.assertTrue(dest.read_text().endswith(installer.END + '\nSuffix\n'))
+        self.assertNotIn('Old block', dest.read_text())
+        self.assertEqual('user-owned content', unrelated.read_text())
+        before = sorted(str(p) for p in (base / '.llm-config-backups').rglob('*'))
+        self.run_install('--codex')
+        self.assertEqual(before, sorted(str(p) for p in (base / '.llm-config-backups').rglob('*')))
+
+    def test_missing_project_and_file_project_are_rejected(self):
+        file = self.root / 'a file'
+        file.write_text('keep')
+        for path in (self.root / 'missing', file):
+            with self.subTest(path=path), self.assertRaises((OSError, ValueError)):
+                self.run_install('--codex-project', path)
+        self.assertEqual('keep', file.read_text())
+        self.assertFalse((self.user / '.agents').exists())
+
+    def test_backup_preserves_broken_symlink_and_original_path(self):
+        dst = self.project / 'broken'
+        target = self.root / 'nonexistent'
+        dst.symlink_to(target)
+        writer = installer.Installer(self.project, False)
+        writer.install(dst, text='replacement')
+        backup = next(writer.backup_root.glob('*/broken'))
+        self.assertTrue(backup.is_symlink())
+        self.assertEqual(str(target), os.readlink(backup))
+        self.assertEqual(str(dst), (backup.parent / 'original-path.txt').read_text().strip())
+        self.assertEqual('replacement', dst.read_text())
+
+    def test_backup_failure_preserves_destination(self):
+        dst = self.project / 'existing'
+        dst.write_text('original')
+        writer = installer.Installer(self.project, False)
+        with patch.object(installer.shutil, 'move', side_effect=PermissionError('denied')):
+            with self.assertRaises(PermissionError):
+                writer.install(dst, text='replacement')
+        self.assertEqual('original', dst.read_text())
+
+    def test_write_failure_leaves_original_recoverable_in_backup(self):
+        dst = self.project / 'existing'
+        dst.write_text('original')
+        writer = installer.Installer(self.project, False)
+        original_write = Path.write_text
+        def failing_write(path, *args, **kwargs):
+            if path == dst:
+                raise OSError('simulated disk full')
+            return original_write(path, *args, **kwargs)
+        with patch.object(Path, 'write_text', failing_write):
+            with self.assertRaisesRegex(OSError, 'disk full'):
+                writer.install(dst, text='replacement')
+        self.assertEqual('original', next(writer.backup_root.glob('*/existing')).read_text())
+
+
+class EntryPointTests(unittest.TestCase):
+    def run_cli(self, *args, no_site=False):
+        return subprocess.run([sys.executable, *(['-S'] if no_site else []),
+                               str(ROOT / 'scripts/install.py'), *args],
+                              text=True, capture_output=True, timeout=20)
+
+    def test_invalid_cli_arguments_fail(self):
+        for args in [(), ('--codex', '--copilot'), ('--unknown',)]:
+            with self.subTest(args=args):
+                result = self.run_cli(*args)
+                self.assertEqual(2, result.returncode)
+                self.assertIn('usage:', result.stderr)
+
+    def test_missing_dependency_reports_actionable_error(self):
+        result = self.run_cli('--codex', no_site=True)
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn('install PyYAML', result.stderr)
+        self.assertNotIn('Traceback', result.stderr)
+
+    def test_setup_shell_entry_point_with_spaces(self):
+        with tempfile.TemporaryDirectory(prefix='installer shell test ') as tmp:
+            base = Path(tmp)
+            project = base / 'project with spaces'
+            project.mkdir()
+            env = dict(os.environ, PATH=str(Path(sys.executable).parent) + os.pathsep + os.defpath)
+            result = subprocess.run(['/bin/bash', str(ROOT / 'setup.sh'),
+                                     '--codex-project', str(project)],
+                                    env=env, cwd=base, text=True, capture_output=True, timeout=20)
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertTrue((project / 'AGENTS.md').is_file())
+            self.assertTrue((project / '.codex/agents/paper-reviewer.toml').is_file())
 
 
 if __name__ == '__main__':

@@ -25,6 +25,8 @@ def frontmatter(path):
     if len(parts) != 3 or parts[0]:
         raise ValueError(f'{path}: expected YAML frontmatter')
     meta = yaml.safe_load(parts[1])
+    if not isinstance(meta, dict):
+        raise ValueError(f'{path}: expected YAML frontmatter mapping')
     for key in ('name', 'description'):
         if not isinstance(meta.get(key), str) or not meta[key].strip():
             raise ValueError(f'{path}: missing {key}')
@@ -153,7 +155,9 @@ def main():
             raise ValueError(f'{path}: invalid skill name or description')
     parsed = [(p, *frontmatter(p)) for p in agent_sources]
     for path, meta, _ in parsed:
-        if not isinstance(meta.get('tools'), list) or set(meta['tools']) - {'read', 'edit', 'search', 'execute', 'web'}:
+        if (not isinstance(meta.get('tools'), list)
+                or any(not isinstance(tool, str) or tool not in {'read', 'edit', 'search', 'execute', 'web'}
+                       for tool in meta['tools'])):
             raise ValueError(f'{path}: unsupported tool list')
 
     # The managed block supplies a path map for source-relative references in skills.
