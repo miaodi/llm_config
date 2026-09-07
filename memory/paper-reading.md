@@ -7,3 +7,7 @@
   current context or local Obsidian registry rather than assuming an absolute path.
 - For paper discussions, explain mathematical analysis through purpose, intuition,
   and intermediate steps, with the original paper as the authority for its claims.
+- During paper discussions, proactively update the existing Obsidian summary with
+  meaningful new explanations, insights, or verified corrections not already
+  captured. This is standing authorization; preserve annotations and distinguish
+  discussion-derived ideas from the paper's claims. Briefly report saved changes.

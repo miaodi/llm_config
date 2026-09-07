@@ -54,8 +54,9 @@ Obsidian vault paths are stored in this repository. Without Zotero, provide the 
 Ask: **Use paper-discussion to help me understand [paper title, DOI, or Zotero key].**
 It starts from an existing Obsidian review, verifies details against the original
 paper, and teaches through focused questions, intuition, worked equations, and
-proof steps. It does not regenerate the full review by default. Ask it to save a
-discussion recap when you want durable learning notes linked to the review.
+proof steps. It proactively adds meaningful new discussion insights to the existing
+summary, preserving annotations and distinguishing interpretation from paper claims.
+Long derivations can live in linked notes with a takeaway added to the summary.
 The preferred vault name and review subfolder live in `memory/paper-reading.md`;
 the actual vault path is resolved locally.
 

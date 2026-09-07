@@ -38,7 +38,9 @@ paper-specific claims and a clear separation of author claims and interpretation
 Build understanding in manageable steps, preserving the current learning focus
 across turns. Do not infer mastery merely from silence or agreement.
 
-Discussion normally stays in chat. When asked to save progress, update a linked
-discussion note in the established vault while preserving the canonical review
-and the user's annotations. State unresolved questions and access limitations.
+During discussion, proactively integrate meaningful new understanding into the
+existing Obsidian summary under the user's standing authorization. Follow the
+skill's evidence and editing rules; preserve the review structure and the user's
+annotations. Use a linked discussion note for extended derivations when useful.
+State unresolved questions and access limitations.
 Do not turn one-paper discussion into a library-wide review or mandatory quiz.

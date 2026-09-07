@@ -73,12 +73,30 @@ question. Track the current question, explanations already given, and unresolved
 points in conversation. On a requested recap, distinguish what was covered from
 what the user has actually demonstrated understanding of.
 
-When saving is requested, use a linked discussion note beside the existing review,
-matched by Zotero key/DOI. Record the date, source version and review link, focused
-questions and explanations with source locators, unresolved issues, and a useful
-next starting point. Preserve prior notes and personal annotations. Do not replace
-the full review with a transcript, silently rewrite it, or create duplicate reviews.
-Without a save request or standing authorization, keep progress in conversation.
+The user authorizes proactive updates to the existing Obsidian summary when a
+discussion produces meaningful material not already captured. Examples include a
+clearer explanation of a difficult step, a useful worked example, a verified
+correction, a newly understood assumption or limitation, or a substantive research
+connection. Do not ask for save permission again. Respect any later request to
+keep a particular discussion out of the notes.
+
+Before editing, reread the current note matched by Zotero key/DOI, including any
+user changes. Add a concise synthesis in the relevant section; use a dated
+discussion-insights subsection when the material is distinct from the paper
+summary. Preserve the fixed review headings and personal annotations, and avoid
+duplicating existing explanations or copying the conversation transcript. Mark
+our derivations, hypotheses, and reflections explicitly; verify paper-specific
+corrections against the source and include locators. A useful unresolved question
+may be saved as a question, never promoted to an established conclusion.
+
+Save at a natural stopping point once the insight is coherent, without waiting for
+the discussion to end. For long derivations, create or update a linked companion
+note and add the key takeaway and link to the canonical summary. Report briefly
+what was added and link to the note. Check the resulting diff and math/links. If
+the summary or vault is inaccessible, state what remains unsaved rather than
+claiming success. Do not manufacture a full review solely to have somewhere to
+save an insight; use an established discussion-note destination or resolve the
+missing destination. Routine exchanges with no new substance need no file update.
 
 ## Verification
 
