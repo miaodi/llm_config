@@ -37,7 +37,9 @@ MCP permissions; use the caller's configured connectors and existing authorizati
 Deliver the structured review with verified source locators, a plain-language
 explanation of the main results and proof dependencies, and a separately labelled
 assessment of strengths, limitations, and value. Verify the PDF matches the paper
-and state any inaccessible material or uncertain reconstruction.
+and state any inaccessible material or uncertain reconstruction in the reading scope.
+Keep source locators beside claims and in proof tables. Do not include standalone
+evidence ledgers, extraction-file paths, or processing logs in the finished review.
 
 Use Markdown with LaTeX math and verified Zotero references where available. Save
 to an established destination when instructed; no Obsidian vault is assumed. Keep

@@ -38,9 +38,11 @@ paper-specific claims and a clear separation of author claims and interpretation
 Build understanding in manageable steps, preserving the current learning focus
 across turns. Do not infer mastery merely from silence or agreement.
 
-During discussion, proactively integrate meaningful new understanding into the
-existing Obsidian summary under the user's standing authorization. Follow the
-skill's evidence and editing rules; preserve the review structure and the user's
-annotations. Use a linked discussion note for extended derivations when useful.
+During discussion, proactively save meaningful new understanding under the user's
+standing authorization. Keep one canonical paper review with links to topic notes
+under `Discussions/<paper-label>/<topic>.md`, following the skill's evidence and
+editing rules. Preserve the review structure and annotations; discussion notes
+link back to their parent review. Do not merge full discussions into the review
+unless requested.
 State unresolved questions and access limitations.
 Do not turn one-paper discussion into a library-wide review or mandatory quiz.

@@ -73,30 +73,33 @@ question. Track the current question, explanations already given, and unresolved
 points in conversation. On a requested recap, distinguish what was covered from
 what the user has actually demonstrated understanding of.
 
-The user authorizes proactive updates to the existing Obsidian summary when a
-discussion produces meaningful material not already captured. Examples include a
-clearer explanation of a difficult step, a useful worked example, a verified
-correction, a newly understood assumption or limitation, or a substantive research
-connection. Do not ask for save permission again. Respect any later request to
-keep a particular discussion out of the notes.
+The user authorizes proactive saving of meaningful discussion insights at natural
+stopping points. Do not ask for save permission again; respect later requests to
+keep a particular discussion out of the notes. Routine exchanges with no new
+substance need no update.
 
-Before editing, reread the current note matched by Zotero key/DOI, including any
-user changes. Add a concise synthesis in the relevant section; use a dated
-discussion-insights subsection when the material is distinct from the paper
-summary. Preserve the fixed review headings and personal annotations, and avoid
-duplicating existing explanations or copying the conversation transcript. Mark
-our derivations, hypotheses, and reflections explicitly; verify paper-specific
-corrections against the source and include locators. A useful unresolved question
-may be saved as a question, never promoted to an established conclusion.
+Keep one canonical review per paper and save topic-specific discussions under
+`<review-directory>/Discussions/<paper-label>/<topic>.md`. For example:
+`Research/Contact Mechanics/Discussions/Belgacem et al. (1998)/Nodal versus integral contact constraints.md`.
+Use the established paper label and a descriptive topic filename. Reuse an existing
+note for the same paper and topic, matched by Zotero key/DOI and content. Keep a
+`Discussions` link list in the main review and a parent-review link in each topic
+note. One main note per paper permits these subordinate notes; do not merge their
+full contents into the review unless explicitly requested.
 
-Save at a natural stopping point once the insight is coherent, without waiting for
-the discussion to end. For long derivations, create or update a linked companion
-note and add the key takeaway and link to the canonical summary. Report briefly
-what was added and link to the note. Check the resulting diff and math/links. If
-the summary or vault is inaccessible, state what remains unsaved rather than
-claiming success. Do not manufacture a full review solely to have somewhere to
-save an insight; use an established discussion-note destination or resolve the
-missing destination. Routine exchanges with no new substance need no file update.
+Before editing, reread the current review and relevant discussion note, including
+user changes. Save a concise synthesis with date, source version and locators,
+questions addressed, corrected interpretations, unresolved questions, and the next
+starting point. Preserve annotations and distinguish paper claims from our
+examples, derivations, hypotheses, and reflections. Verify paper-specific
+corrections against the source. Update the main review's substantive claims when
+correction is warranted, while keeping extended discussion in its topic note.
+
+When reorganizing existing notes, preserve their contents, update links in both
+directions, and verify the destination before removing the old copy. Report saved
+changes briefly and check math and links. If the vault is inaccessible, state what
+remains unsaved. Do not manufacture a full review solely to save an insight; use
+an established discussion destination or resolve the missing destination.
 
 ## Verification
 
