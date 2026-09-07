@@ -2,6 +2,7 @@
 import contextlib
 import importlib.util
 import io
+import json
 import os
 from pathlib import Path
 import shutil
@@ -91,7 +92,7 @@ class InstallTests(InstallFixture, unittest.TestCase):
         self.assertTrue(first.startswith('# Existing rules\n\nKeep this exactly.\n'))
         self.assertEqual(1, first.count(installer.BEGIN))
         self.assertIn('functional-programming', first)
-        self.assertTrue(list((self.project / '.codex/.llm-config-backups').glob('*/0/AGENTS.md')))
+        self.assertFalse((self.project / '.codex/.llm-config-backups').exists())
 
     def test_malformed_instructions_fail_before_install(self):
         (self.project / 'AGENTS.md').write_text(installer.BEGIN)
@@ -111,7 +112,7 @@ class InstallTests(InstallFixture, unittest.TestCase):
         self.assertFalse((base / 'skills/coding').is_symlink())
         self.assertFalse((base / 'agents/cpp-engineer.agent.md').exists())
         self.assertEqual('keep my edit', (base / 'skills/writing/local.txt').read_text())
-        self.assertTrue(list((base / '.llm-config-backups').glob('*/*/coding')))
+        self.assertFalse((base / '.llm-config-backups').exists())
 
     def test_custom_config_directories(self):
         os.environ['CODEX_HOME'] = str(self.root / 'custom-codex')
@@ -154,7 +155,7 @@ class InstallTests(InstallFixture, unittest.TestCase):
         with self.assertRaises(ValueError):
             writer.install(linked / 'coding', src=ROOT / 'skills/writing')
         with self.assertRaises(ValueError):
-            writer.backup(linked / 'coding')
+            installer.remove_entry(linked / 'coding')
         self.assertTrue((ROOT / 'skills/coding/SKILL.md').exists())
 
 
@@ -169,7 +170,7 @@ class InstallTests(InstallFixture, unittest.TestCase):
         writer.install(dst, src=src)
         self.assertEqual('version two', (dst / 'SKILL.md').read_text())
         self.assertFalse((dst / 'source').exists())
-        self.assertEqual('version one', next(writer.backup_root.glob('*/example/SKILL.md')).read_text())
+        self.assertFalse((self.project / '.llm-config-backups').exists())
 
 
 class ContentTests(unittest.TestCase):
@@ -285,9 +286,12 @@ class ExtendedInstallTests(InstallFixture, unittest.TestCase):
         self.assertTrue(dest.read_text().endswith(installer.END + '\nSuffix\n'))
         self.assertNotIn('Old block', dest.read_text())
         self.assertEqual('user-owned content', unrelated.read_text())
-        before = sorted(str(p) for p in (base / '.llm-config-backups').rglob('*'))
+        tracked = [dest, base / 'agents/example.toml', base / '.llm-config-manifest.json',
+                   self.user / '.agents/.llm-config-skills.json']
+        before = {path: path.stat().st_mtime_ns for path in tracked}
         self.run_install('--codex')
-        self.assertEqual(before, sorted(str(p) for p in (base / '.llm-config-backups').rglob('*')))
+        self.assertEqual(before, {path: path.stat().st_mtime_ns for path in tracked})
+        self.assertFalse((base / '.llm-config-backups').exists())
 
     def test_missing_project_and_file_project_are_rejected(self):
         file = self.root / 'a file'
@@ -298,40 +302,245 @@ class ExtendedInstallTests(InstallFixture, unittest.TestCase):
         self.assertEqual('keep', file.read_text())
         self.assertFalse((self.user / '.agents').exists())
 
-    def test_backup_preserves_broken_symlink_and_original_path(self):
+    def test_replace_broken_symlink_without_following_target(self):
         dst = self.project / 'broken'
         target = self.root / 'nonexistent'
         dst.symlink_to(target)
         writer = installer.Installer(self.project, False)
         writer.install(dst, text='replacement')
-        backup = next(writer.backup_root.glob('*/broken'))
-        self.assertTrue(backup.is_symlink())
-        self.assertEqual(str(target), os.readlink(backup))
-        self.assertEqual(str(dst), (backup.parent / 'original-path.txt').read_text().strip())
+        self.assertFalse(dst.is_symlink())
+        self.assertFalse(target.exists())
         self.assertEqual('replacement', dst.read_text())
 
-    def test_backup_failure_preserves_destination(self):
+    def test_atomic_replace_failure_preserves_destination(self):
         dst = self.project / 'existing'
         dst.write_text('original')
         writer = installer.Installer(self.project, False)
-        with patch.object(installer.shutil, 'move', side_effect=PermissionError('denied')):
+        with patch.object(installer.os, 'replace', side_effect=PermissionError('denied')):
             with self.assertRaises(PermissionError):
                 writer.install(dst, text='replacement')
         self.assertEqual('original', dst.read_text())
+        self.assertFalse(list(self.project.glob('.llm-config-stage-*')))
 
-    def test_write_failure_leaves_original_recoverable_in_backup(self):
+    def test_staging_write_failure_preserves_original(self):
         dst = self.project / 'existing'
         dst.write_text('original')
         writer = installer.Installer(self.project, False)
-        original_write = Path.write_text
-        def failing_write(path, *args, **kwargs):
-            if path == dst:
-                raise OSError('simulated disk full')
-            return original_write(path, *args, **kwargs)
-        with patch.object(Path, 'write_text', failing_write):
+        with patch.object(Path, 'write_text', side_effect=OSError('simulated disk full')):
             with self.assertRaisesRegex(OSError, 'disk full'):
                 writer.install(dst, text='replacement')
-        self.assertEqual('original', next(writer.backup_root.glob('*/existing')).read_text())
+        self.assertEqual('original', dst.read_text())
+        self.assertFalse(list(self.project.glob('.llm-config-stage-*')))
+
+    def test_deleted_and_renamed_sources_are_removed_for_every_product(self):
+        for product, base, extension in [
+                ('codex', self.user / '.codex', '.toml'),
+                ('copilot', self.user / '.copilot', '.agent.md'),
+                ('opencode', self.user / '.config/opencode', '.md')]:
+            with self.subTest(product=product):
+                self.run_install('--' + product, '--copy')
+                old = base / ('agents/example' + extension)
+                renamed = self.source / 'agents/renamed.agent.md'
+                self.agent.rename(renamed)
+                self.run_install('--' + product, '--copy')
+                self.assertFalse(old.exists())
+                self.assertTrue((base / ('agents/renamed' + extension)).exists())
+                renamed.unlink()
+                self.run_install('--' + product)
+                self.assertFalse((base / ('agents/renamed' + extension)).exists())
+                # Recreate the source for the next product.
+                self.agent.write_text('---\nname: example\ndescription: Example\ntools: [read]\n---\nBody')
+        skill = self.source / 'skills/example'
+        skill.rename(self.source / 'skills/renamed')
+        skill_file = self.source / 'skills/renamed/SKILL.md'
+        skill_file.write_text(skill_file.read_text().replace('name: example', 'name: renamed'))
+        self.run_install('--codex', '--copy')
+        self.assertFalse((self.user / '.agents/skills/example').exists())
+        self.assertTrue((self.user / '.agents/skills/renamed/SKILL.md').exists())
+        shutil.rmtree(self.source / 'skills/renamed')
+        self.run_install('--codex')
+        self.assertFalse((self.user / '.agents/skills/renamed').exists())
+
+    def test_shared_skill_cleanup_works_across_products(self):
+        self.run_install('--codex')
+        shutil.rmtree(self.source / 'skills/example')
+        self.run_install('--copilot')
+        old = self.user / '.agents/skills/example'
+        self.assertFalse(old.is_symlink())
+        self.run_install('--codex')
+        self.assertFalse(old.exists())
+        data = json.loads((self.user / '.agents/.llm-config-skills.json').read_text())
+        self.assertEqual([], data['entries']['skills'])
+
+    def test_modified_owned_files_are_replaced_without_backups(self):
+        self.run_install('--codex', '--copy')
+        base = self.user / '.codex'
+        agent = base / 'agents/example.toml'
+        agent.write_text('local edits are disposable')
+        skill = self.user / '.agents/skills/example'
+        (skill / 'extra.txt').write_text('stale local file')
+        self.run_install('--codex', '--copy')
+        self.assertEqual('example', tomllib.loads(agent.read_text())['name'])
+        self.assertFalse((skill / 'extra.txt').exists())
+        self.assertFalse((base / '.llm-config-backups').exists())
+        self.agent.unlink()
+        agent.write_text('even modified obsolete entries are owned')
+        self.run_install('--codex')
+        self.assertFalse(agent.exists())
+
+    def test_untracked_collision_is_preserved_before_any_install(self):
+        base = self.user / '.codex'
+        (base / 'agents').mkdir(parents=True)
+        dst = base / 'agents/example.toml'
+        dst.write_text('unrelated agent with the same name')
+        with self.assertRaisesRegex(ValueError, 'untracked destination'):
+            self.run_install('--codex')
+        self.assertEqual('unrelated agent with the same name', dst.read_text())
+        self.assertFalse((base / '.llm-config-manifest.json').exists())
+        self.assertFalse((self.user / '.agents').exists())
+
+    def test_matching_pre_manifest_install_is_adopted(self):
+        self.run_install('--codex', '--copy')
+        base = self.user / '.codex'
+        (base / '.llm-config-manifest.json').unlink()
+        (self.user / '.agents/.llm-config-skills.json').unlink()
+        self.run_install('--codex')
+        self.assertTrue((base / '.llm-config-manifest.json').is_file())
+        self.assertTrue((self.user / '.agents/skills/example').is_symlink())
+        self.agent.unlink()
+        self.run_install('--codex')
+        self.assertFalse((base / 'agents/example.toml').exists())
+
+    def test_invalid_manifest_cannot_delete_configuration(self):
+        self.run_install('--codex')
+        base = self.user / '.codex'
+        config = base / 'config.toml'
+        config.write_text('keep credentials')
+        manifest = base / '.llm-config-manifest.json'
+        original = manifest.read_text()
+        for value in ['not json', json.dumps({'version': 99, 'entries': {}}),
+                      json.dumps({'version': 1, 'entries': {
+                          'agents': ['../config.toml'], 'resources': []}})]:
+            with self.subTest(value=value):
+                manifest.write_text(value)
+                with self.assertRaises(ValueError):
+                    self.run_install('--codex')
+                self.assertEqual('keep credentials', config.read_text())
+                self.assertEqual(value, manifest.read_text())
+        manifest.write_text(original)
+
+    def test_redirected_managed_directory_is_rejected(self):
+        self.run_install('--codex')
+        base = self.user / '.codex'
+        external = self.root / 'external'
+        (base / 'agents').rename(external)
+        (base / 'agents').symlink_to(external)
+        self.agent.unlink()
+        with self.assertRaisesRegex(ValueError, 'managed directory'):
+            self.run_install('--codex')
+        self.assertTrue((external / 'example.toml').exists())
+
+    def test_obsolete_symlink_removal_preserves_external_target(self):
+        self.run_install('--codex')
+        dst = self.user / '.agents/skills/example'
+        dst.unlink()
+        external = self.root / 'external'
+        external.mkdir()
+        (external / 'keep.txt').write_text('keep')
+        dst.symlink_to(external)
+        shutil.rmtree(self.source / 'skills/example')
+        self.run_install('--codex')
+        self.assertFalse(dst.is_symlink())
+        self.assertEqual('keep', (external / 'keep.txt').read_text())
+
+    def test_failed_sync_tracks_new_destinations_for_retry(self):
+        self.run_install('--codex')
+        base = self.user / '.codex'
+        new_agent = self.source / 'agents/new.agent.md'
+        new_agent.write_text(self.agent.read_text())
+        original = installer.Installer.install
+        def fail_instruction(writer, dst, *args, **kwargs):
+            if dst.resolve() == (base / 'AGENTS.md').resolve():
+                raise OSError('interrupted sync')
+            return original(writer, dst, *args, **kwargs)
+        with patch.object(installer.Installer, 'install', fail_instruction):
+            with self.assertRaisesRegex(OSError, 'interrupted sync'):
+                self.run_install('--codex')
+        self.assertTrue((base / 'agents/new.toml').exists())
+        new_agent.unlink()
+        self.run_install('--codex')
+        self.assertFalse((base / 'agents/new.toml').exists())
+        self.assertTrue((base / 'agents/example.toml').exists())
+
+    def test_missing_source_directory_does_not_trigger_cleanup(self):
+        self.run_install('--codex', '--copy')
+        shutil.rmtree(self.source / 'agents')
+        with self.assertRaisesRegex(ValueError, 'missing source directory'):
+            self.run_install('--codex')
+        self.assertTrue((self.user / '.codex/agents/example.toml').exists())
+
+    def test_directory_copy_failure_keeps_existing_copy(self):
+        self.run_install('--codex', '--copy')
+        (self.source / 'docs/new.md').write_text('new')
+        with patch.object(installer.shutil, 'copytree', side_effect=OSError('copy failed')):
+            with self.assertRaisesRegex(OSError, 'copy failed'):
+                self.run_install('--codex', '--copy')
+        self.assertEqual('Guide', (self.user / '.codex/llm-config/docs/guide.md').read_text())
+        self.run_install('--codex', '--copy')
+        self.assertTrue((self.user / '.codex/llm-config/docs/new.md').is_file())
+
+
+    def test_failed_cleanup_keeps_ownership_for_retry(self):
+        self.run_install('--codex')
+        self.agent.unlink()
+        original = installer.remove_entry
+        def deny_agent(dst):
+            if dst.name == 'example.toml':
+                raise PermissionError('cleanup denied')
+            return original(dst)
+        with patch.object(installer, 'remove_entry', deny_agent):
+            with self.assertRaisesRegex(PermissionError, 'cleanup denied'):
+                self.run_install('--codex')
+        manifest = self.user / '.codex/.llm-config-manifest.json'
+        self.assertIn('example.toml', json.loads(manifest.read_text())['entries']['agents'])
+        self.run_install('--codex')
+        self.assertFalse((self.user / '.codex/agents/example.toml').exists())
+        self.assertEqual([], json.loads(manifest.read_text())['entries']['agents'])
+
+    def test_directory_publish_failure_is_repaired_by_retry(self):
+        self.run_install('--codex', '--copy')
+        (self.source / 'docs/new.md').write_text('new content')
+        original = installer.os.replace
+        def fail_docs(src, dst):
+            if Path(dst).name == 'docs':
+                raise OSError('publish failed')
+            return original(src, dst)
+        with patch.object(installer.os, 'replace', fail_docs):
+            with self.assertRaisesRegex(OSError, 'publish failed'):
+                self.run_install('--codex', '--copy')
+        self.run_install('--codex', '--copy')
+        docs = self.user / '.codex/llm-config/docs'
+        self.assertEqual('Guide', (docs / 'guide.md').read_text())
+        self.assertEqual('new content', (docs / 'new.md').read_text())
+
+    def test_manifest_write_failure_leaves_installation_unchanged(self):
+        self.run_install('--codex')
+        base = self.user / '.codex'
+        original_bytes = (base / 'agents/example.toml').read_bytes()
+        manifest = base / '.llm-config-manifest.json'
+        manifest_bytes = manifest.read_bytes()
+        self.agent.rename(self.source / 'agents/renamed.agent.md')
+        original = installer.os.replace
+        def fail_manifest(src, dst):
+            if Path(dst).name == manifest.name:
+                raise OSError('manifest write failed')
+            return original(src, dst)
+        with patch.object(installer.os, 'replace', fail_manifest):
+            with self.assertRaisesRegex(OSError, 'manifest write failed'):
+                self.run_install('--codex')
+        self.assertEqual(manifest_bytes, manifest.read_bytes())
+        self.assertEqual(original_bytes, (base / 'agents/example.toml').read_bytes())
+        self.assertFalse((base / 'agents/renamed.toml').exists())
 
 
 class EntryPointTests(unittest.TestCase):

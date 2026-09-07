@@ -34,8 +34,8 @@ must already exist. Bare `./setup.sh` prints an error instead of selecting a tar
 Each skill lives in `<name>/SKILL.md` with YAML `name` and `description` fields.
 No extra skill registration is required. All three targets use the shared `.agents/skills`
 location so installing several clients does not create duplicate skill entries. Matching
-legacy product-specific skills are backed up outside discovery; modified copies are
-retained with a warning for manual reconciliation.
+legacy product-specific skills are removed from discovery; untracked modified copies
+are retained with a warning for manual reconciliation.
 
 ### Codex Desktop and CLI
 
@@ -68,12 +68,36 @@ stable path. `--copy` creates independent copies for machines where the source
 checkout will not remain available. Agents are always generated as regular files:
 their native metadata and resource paths depend on the destination product.
 
-Re-run the same target command after changing agents or `memory/`, after adding
-skills, or to update a copied install. Existing matching files are left alone.
-Changed destinations and copy/link mode transitions are backed up under
-`<product-config>/.llm-config-backups/`, outside skill and agent discovery paths.
-Each backup records its original path. A repeated copy replaces the skill directory
-instead of nesting another copy inside it. Unrelated skills and agents are preserved.
+Re-run the same target command after changing agents or `memory/`, adding,
+renaming, or deleting skills and agents, or updating a copied install. The repository
+is the source of truth: installer-owned destinations are overwritten without backups,
+including local edits. Edit the repository, not installed copies. Edits through a
+symlink already edit the repository itself.
+
+The installer records owned agents and resource directories in
+`<product-config>/.llm-config-manifest.json`. Shared skills use
+`<home-or-project>/.agents/.llm-config-skills.json`, so any product install can
+synchronize the shared skill set. These destinations support one llm-config source
+repository; other plugins and untracked skills or agents remain untouched.
+
+Deleted or renamed entries from a previous manifest are removed on the next sync.
+Copied directories are replaced completely, removing stale contents. Only the managed
+block of `AGENTS.md` is updated; text outside it and `config.toml` remain untouched.
+Keep the manifests: without them, the installer cannot identify obsolete copied or
+generated files safely.
+
+On the first run after upgrading, existing entries are adopted when their generated
+contents, copied contents, or source symlinks match. A conflicting untracked destination
+stops installation before managed files change. Old obsolete entries that have never
+been recorded in a manifest require manual reconciliation. Historical
+`.llm-config-backups/` directories are left as-is; no new backups are created.
+
+All metadata and generated content are validated before sync. Files and symlinks
+replace existing files or symlinks atomically. Directory copies are staged before
+replacement, but a directory replacement or whole installation is not atomic. If an
+update fails, rerun it: the manifests retain pending ownership so a later run can
+repair missing entries and remove obsolete ones. Run installations sequentially;
+concurrent installers are not supported.
 
 Restart the client after installation. Generated agents and managed instructions
 contain installation-specific paths; rerun setup after relocating a copied install.
@@ -87,8 +111,8 @@ The installer does not edit model, provider, authentication, or project trust se
   use a read-only sandbox. Copilot tool names do not map exactly to Codex tool
   permissions; other agents inherit the active Codex sandbox and approval policy.
   `child_agents_md` is not a registration mechanism. Matching legacy `.codex/skills`
-  installs and `.agent.md` files are backed up and removed from discovery. Modified
-  legacy skills are retained with a warning so local edits are not lost.
+  installs and `.agent.md` files are removed from discovery when they match the
+  source. Untracked modified legacy skills are retained with a warning.
 - **Copilot:** `COPILOT_HOME` overrides the personal CLI directory. VS Code uses
   the default `~/.copilot` directories unless separately configured. Source tool
   lists are retained; omitting `target` permits both supported target environments.

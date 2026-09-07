@@ -35,6 +35,8 @@ def frontmatter(path):
 
 def same_tree(left, right):
     """Compare bytes, not timestamps; copied resources can contain directories."""
+    if left.is_symlink() or right.is_symlink():
+        return left.is_symlink() and right.is_symlink() and os.readlink(left) == os.readlink(right)
     if left.is_dir() and right.is_dir():
         a = {p.name for p in left.iterdir()}
         b = {p.name for p in right.iterdir()}
@@ -42,65 +44,133 @@ def same_tree(left, right):
     return left.is_file() and right.is_file() and left.read_bytes() == right.read_bytes()
 
 
+def check_destination(dst):
+    protected = [SOURCE / name for name in ('skills', 'agents', 'templates', 'docs', 'memory')]
+    if any(dst.parent.resolve().is_relative_to(path.resolve()) for path in protected):
+        raise ValueError(f'{dst}: refusing to modify source content')
+
+
+def remove_entry(dst):
+    """Remove the installed entry itself; never follow a directory symlink."""
+    check_destination(dst)
+    if dst.is_symlink() or dst.is_file():
+        dst.unlink()
+    elif dst.exists():
+        shutil.rmtree(dst)
+
+
 class Installer:
     def __init__(self, base, copy):
         self.base = base
         self.copy = copy
-        self.backup_root = None
 
-    def backup(self, dst):
-        protected = [SOURCE / name for name in ('skills', 'agents', 'templates', 'docs', 'memory')]
-        if any(dst.parent.resolve().is_relative_to(path) for path in protected):
-            raise ValueError(f'{dst}: refusing to move source content')
-        if not dst.exists() and not dst.is_symlink():
-            return
-        if self.backup_root is None:
-            parent = self.base / '.llm-config-backups'
-            parent.mkdir(parents=True, exist_ok=True)
-            self.backup_root = Path(tempfile.mkdtemp(prefix='install-', dir=parent))
-        # Preserve symlinks themselves; never move or modify their source targets.
-        slot = self.backup_root / str(len(list(self.backup_root.iterdir())))
-        slot.mkdir()
-        (slot / 'original-path.txt').write_text(str(dst) + '\n')
-        shutil.move(str(dst), str(slot / dst.name))
+    def matches(self, dst, src=None, text=None):
+        if text is not None:
+            return dst.is_file() and not dst.is_symlink() and dst.read_text() == text
+        if dst.is_symlink():
+            return not self.copy and dst.resolve() == src.resolve()
+        return self.copy and same_tree(src, dst)
 
     def install(self, dst, src=None, text=None):
-        protected = [SOURCE / name for name in ('skills', 'agents', 'templates', 'docs', 'memory')]
-        if any(dst.parent.resolve().is_relative_to(path) for path in protected):
-            raise ValueError(f'{dst}: refusing to install into the source content')
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        if text is not None:
-            if dst.is_file() and not dst.is_symlink() and dst.read_text() == text:
-                return
-        elif not self.copy:
-            if dst.is_symlink() and dst.resolve() == src.resolve():
-                return
-        elif not dst.is_symlink() and same_tree(src, dst):
+        check_destination(dst)
+        if self.matches(dst, src, text):
             return
-        self.backup(dst)
-        if text is not None:
-            dst.write_text(text)
-        elif self.copy:
-            if src.is_dir():
-                shutil.copytree(src, dst)
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        # Prepare on the same filesystem before replacing any existing content.
+        with tempfile.TemporaryDirectory(prefix='.llm-config-stage-', dir=dst.parent) as tmp:
+            staged = Path(tmp) / dst.name
+            if text is not None:
+                staged.write_text(text)
+            elif self.copy:
+                if src.is_dir():
+                    shutil.copytree(src, staged, symlinks=True)
+                else:
+                    shutil.copy2(src, staged)
             else:
-                shutil.copy2(src, dst)
-        else:
-            dst.symlink_to(src.resolve(), target_is_directory=src.is_dir())
+                staged.symlink_to(src.resolve(), target_is_directory=src.is_dir())
+            # POSIX rename cannot replace a nonempty directory. Files and links
+            # are replaced atomically; directory replacement is recoverable by rerun.
+            if ((dst.is_dir() and not dst.is_symlink())
+                    or (staged.is_dir() and not staged.is_symlink())):
+                remove_entry(dst)
+            os.replace(staged, dst)
 
-    def instructions(self, dst, content):
-        previous = dst.read_text() if dst.exists() else ''
-        if previous.count(BEGIN) != previous.count(END) or previous.count(BEGIN) > 1:
-            raise ValueError(f'{dst}: malformed llm-config instruction markers')
-        block = BEGIN + '\n' + content.rstrip() + '\n' + END
-        if BEGIN in previous:
-            if previous.index(BEGIN) > previous.index(END):
-                raise ValueError(f'{dst}: reversed llm-config instruction markers')
-            updated = re.sub(re.escape(BEGIN) + r'.*?' + re.escape(END),
-                             lambda _: block, previous, flags=re.S)
-        else:
-            updated = previous + ('\n\n' if previous else '') + block + '\n'
-        self.install(dst, text=updated)
+
+def render_instructions(dst, content):
+    previous = dst.read_text() if dst.exists() else ''
+    if (previous.count(BEGIN) != previous.count(END) or previous.count(BEGIN) > 1
+            or (BEGIN in previous and previous.index(BEGIN) > previous.index(END))):
+        raise ValueError(f'{dst}: malformed llm-config instruction markers')
+    block = BEGIN + '\n' + content.rstrip() + '\n' + END
+    if BEGIN in previous:
+        return re.sub(re.escape(BEGIN) + r'.*?' + re.escape(END),
+                      lambda _: block, previous, flags=re.S)
+    return previous + ('\n\n' if previous else '') + block + '\n'
+
+
+class Ownership:
+    """Store names within fixed roots, never arbitrary paths to delete."""
+    def __init__(self, path, groups):
+        self.path = path
+        self.groups = groups
+        self.previous = {group: set() for group in groups}
+        if path.is_symlink():
+            raise ValueError(f'{path}: ownership manifest must not be a symlink')
+        if path.exists():
+            data = json.loads(path.read_text())
+            if (not isinstance(data, dict) or data.get('version') != 1
+                    or not isinstance(data.get('entries'), dict)
+                    or set(data['entries']) != set(groups)):
+                raise ValueError(f'{path}: invalid ownership manifest')
+            for group, names in data['entries'].items():
+                if (not isinstance(names, list)
+                        or any(not isinstance(name, str) or not re.fullmatch(groups[group][1], name)
+                               for name in names)
+                        or len(names) != len(set(names))):
+                    raise ValueError(f'{path}: invalid owned names for {group}')
+                self.previous[group] = set(names)
+        self.desired = {group: set() for group in groups}
+
+    def prepare(self, plans):
+        for group, name, src, text in plans:
+            if not re.fullmatch(self.groups[group][1], name):
+                raise ValueError(f'{name}: invalid managed entry name')
+            dst = self.groups[group][0] / name
+            check_destination(dst)
+            self.desired[group].add(name)
+            if name in self.previous[group] or not (dst.exists() or dst.is_symlink()):
+                continue
+            # Bootstrap old installs only when their contents or source link match.
+            matches = (dst.is_file() and not dst.is_symlink() and dst.read_text() == text
+                       if text is not None else
+                       (dst.is_symlink() and dst.resolve() == src.resolve())
+                       or (not dst.is_symlink() and same_tree(src, dst)))
+            if not matches:
+                raise ValueError(f'{dst}: untracked destination conflicts with repository content')
+        for group, names in self.previous.items():
+            for name in names:
+                check_destination(self.groups[group][0] / name)
+
+    def save(self, writer, entries):
+        text = json.dumps({'version': 1, 'entries': {group: sorted(names)
+                          for group, names in entries.items()}}, indent=2) + '\n'
+        writer.install(self.path, text=text)
+
+    def claim(self, writer):
+        # Keep old and new ownership until sync completes, so retries can clean up
+        # after a failed write or interrupted directory replacement.
+        self.save(writer, {group: self.previous[group] | self.desired[group]
+                           for group in self.groups})
+
+    def finish(self, writer):
+        removed = 0
+        for group, names in self.previous.items():
+            for name in sorted(names - self.desired[group]):
+                dst = self.groups[group][0] / name
+                remove_entry(dst)
+                removed += 1
+        self.save(writer, self.desired)
+        return removed
 
 
 def arguments():
@@ -145,6 +215,9 @@ def main():
     install = Installer(base, args.copy)
 
     # Validate all sources before installing anything.
+    for folder in ('skills', 'agents', 'templates', 'docs', 'memory'):
+        if not (SOURCE / folder).is_dir():
+            raise ValueError(f'{SOURCE / folder}: missing source directory')
     skill_sources = sorted((SOURCE / 'skills').glob('*/SKILL.md'))
     agent_sources = sorted((SOURCE / 'agents').glob('*.agent.md'))
     for path in skill_sources:
@@ -167,16 +240,10 @@ def main():
                 f'or under `{skills}`. Resolve llm-config `templates/`, `docs/`, '
                 f'and source `agents/` references under `{resources}`. '
                 'These paths describe instruction resources, not the project being edited.\n\n' + memory)
-    # Check malformed markers before other writes.
-    previous = instructions.read_text() if instructions.exists() else ''
-    if (previous.count(BEGIN) != previous.count(END) or previous.count(BEGIN) > 1
-            or (BEGIN in previous and previous.index(BEGIN) > previous.index(END))):
-        raise ValueError(f'{instructions}: malformed llm-config instruction markers')
-
-    for folder in ('templates', 'docs', 'agents', 'memory'):
-        install.install(resources / folder, src=SOURCE / folder)
-    for path in skill_sources:
-        install.install(skills / path.parent.name, src=path.parent)
+    instruction_text = render_instructions(instructions, guidance)
+    product_plans = [('resources', folder, SOURCE / folder, None)
+                     for folder in ('templates', 'docs', 'agents', 'memory')]
+    skill_plans = [('skills', path.parent.name, path.parent, None) for path in skill_sources]
     for path, meta, body in parsed:
         name = path.name.removesuffix('.agent.md')
         # Agents are generated for every product so installed resource paths are explicit.
@@ -211,30 +278,52 @@ def main():
                 meta = {'description': meta['description'], 'mode': 'subagent', 'permission': permission}
             rendered = '---\n' + yaml.safe_dump(meta, sort_keys=False, allow_unicode=True) + '---\n\n' + body
             output = agents / (name + ('.md' if product == 'opencode' else '.agent.md'))
-        install.install(output, text=rendered)
-    install.instructions(instructions, guidance)
+        product_plans.append(('agents', output.name, None, rendered))
+    # Shared skills have one manifest regardless of which product installs them.
+    # Refuse redirected managed roots before loading ownership or touching files.
+    for directory in (base / 'agents', resources, skills.parent, skills, base / 'skills'):
+        if directory.is_symlink():
+            raise ValueError(f'{directory}: managed directory must not be a symlink')
+    suffix = {'codex': r'\.toml', 'copilot': r'\.agent\.md', 'opencode': r'\.md'}[product]
+    owned_product = Ownership(base / '.llm-config-manifest.json', {
+        'agents': (agents, r'[a-z0-9]+(?:-[a-z0-9]+)*' + suffix),
+        'resources': (resources, r'(?:templates|docs|agents|memory)'),
+    })
+    owned_skills = Ownership(skills.parent / '.llm-config-skills.json', {
+        'skills': (skills, r'[a-z0-9]+(?:-[a-z0-9]+)*'),
+    })
+    owned_product.prepare(product_plans)
+    owned_skills.prepare(skill_plans)
+    check_destination(instructions)
+    # Record intended ownership before writing destinations; no backups are made.
+    owned_product.claim(install)
+    owned_skills.claim(install)
+    for owner, plans in ((owned_product, product_plans), (owned_skills, skill_plans)):
+        for group, name, src, text in plans:
+            install.install(owner.groups[group][0] / name, src=src, text=text)
+    install.install(instructions, text=instruction_text)
+    removed = owned_product.finish(install) + owned_skills.finish(install)
 
-    # Migrate matching product-specific skills to the shared discovery root.
+    # Remove matching legacy entries. Untracked modified copies remain unrelated
+    # until ownership can be established, and are never deleted by name alone.
     for path in skill_sources:
         old = base / 'skills' / path.parent.name
         if old == skills / path.parent.name:
             continue
-        if old.is_symlink() and old.resolve() == path.parent.resolve():
-            install.backup(old)
-        elif old.is_dir() and not old.is_symlink() and same_tree(old, path.parent):
-            install.backup(old)
+        if ((old.is_symlink() and old.resolve() == path.parent.resolve())
+                or (old.is_dir() and not old.is_symlink() and same_tree(old, path.parent))):
+            remove_entry(old)
         elif old.exists() or old.is_symlink():
-            print(f'Warning: retained modified legacy skill {old}; check for duplicate discovery.')
+            print(f'Warning: retained untracked legacy skill {old}; check for duplicate discovery.')
     if product == 'codex':
         for path in agent_sources:
             old = agents / path.name
             if old.is_file() and old.read_bytes() == path.read_bytes():
-                install.backup(old)
+                remove_entry(old)
     print(f'Installed {len(skill_sources)} skills in {skills}')
     print(f'Generated {len(agent_sources)} {product} agents in {agents}')
     print(f'Updated managed instructions in {instructions}')
-    if install.backup_root:
-        print(f'Previous files saved in {install.backup_root}')
+    print(f'Removed {removed} obsolete managed entries; no backups created.')
     print('Restart the client. Re-run this command after changing agents, memory, or copied sources.')
 
 
