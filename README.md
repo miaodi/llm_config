@@ -37,6 +37,20 @@ location so installing several clients does not create duplicate skill entries. 
 legacy product-specific skills are backed up outside discovery; modified copies are
 retained with a warning for manual reconciliation.
 
+### Codex Desktop and CLI
+
+Run `./setup.sh --codex` once for both Codex Desktop and CLI when they use the
+same user and `CODEX_HOME`. Restart both clients after installation. No separate
+Desktop agent format is needed. The installer preserves `config.toml`, including
+your model settings and Zotero MCP credentials.
+
+Ask: **Use paper-reviewer to review [paper title, DOI, or Zotero key].**
+The reviewer uses the `paper-review` skill for a consistent structure, accessible
+lemma-to-theorem explanations, and a separately labelled critical assessment.
+Reviews support Markdown/LaTeX and verified Zotero references. Zotero MCP is an
+optional, separately configured source connector; no credentials or Obsidian vault
+path are stored in this repository. Without Zotero, provide the paper or a source URL.
+
 ### Copies, links, and updates
 
 Skills and supporting resources are symlinked by default. Keep this checkout at a
@@ -135,6 +149,7 @@ See [skill and agent ownership](docs/skill-map.md) for routing boundaries and th
 | `agent-creator` | Custom agent and skill design for this repository |
 | `computational-learning-coach` | Low-level computational and numerical concepts taught through minimal C++ examples and learning notes |
 | `cpp-engineer` | Modern C++ design, type safety, ownership, compile-time computation |
+| `paper-reviewer` | Consistent paper reviews, accessible proof roadmaps, and separate critical assessments |
 | `document-writer` | Markdown, Confluence, LaTeX, and report editing |
 | `p4-reviewer` | Read-only Perforce changelist and shelf defect review |
 | `p4-engineer` | Perforce sync, integration/resolve, changelist/shelf operations, and description generation/updates |
@@ -145,7 +160,7 @@ See [skill and agent ownership](docs/skill-map.md) for routing boundaries and th
 | `git-integrator` | Git branch integration: merge/rebase strategy, conflict resolution, branch sync, and safe recovery |
 | `git-publisher` | Git commit and push workflow: status, diff review, staging, commit messages, and publishing |
 
-## Skills (27)
+## Skills (28)
 
 | Skill | Domain |
 |-------|--------|
@@ -166,6 +181,7 @@ See [skill and agent ownership](docs/skill-map.md) for routing boundaries and th
 | `handoff-document` | Session handoff files for pausing, resuming, and transferring agent context |
 | `p4-review` | Perforce code review and changelist comments |
 | `p4-workflow` | Perforce changelist and shelf management |
+| `paper-review` | Individual paper contributions, main results, proof dependencies, and critical assessment |
 | `research` | Technical investigation and synthesis |
 | `writing` | Editing, summarization, style normalization |
 | `markdown-editing` | Markdown documentation, tables, links, and GitHub formatting |

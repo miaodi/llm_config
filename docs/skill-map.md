@@ -18,6 +18,7 @@ several skills in sequence; boundaries do not require delegation or stopping wor
 | computational-learning-notes | A runnable concept demonstration and explanation | Production performance optimization |
 | python-ml | Experiment implementation, data integrity, checkpoints | reinforcement-learning for RL methodology |
 | reinforcement-learning | RL updates, task formulation, evaluation | python-ml for project scaffolding |
+| paper-review | A single paper’s contribution, results, proof roadmap, and critical assessment | research for broad literature synthesis; writing for prose editing |
 | research | External evidence gathering and synthesis | coding for ordinary local source inspection |
 | writing | Prose, argument, meaning, tone | markdown-editing for markup; research for new evidence |
 | markdown-editing | Markdown rendering, fences, tables, links | writing for prose even in a Markdown file |
@@ -44,6 +45,7 @@ Agents own outcomes and select the skills above. They do not repeat the method:
 - **Computational Learning Coach:** a runnable lesson.
 - **Course Project Worker:** multi-stage assignment completion and requirement coverage.
 - **Document Writer:** technical document authorship.
+- **Paper Reviewer:** source-grounded individual paper review and accessible proof explanation.
 - **AGENTS.md Writer:** evidence-based repository operating instructions.
 - **Agent Creator:** reusable customization design.
 - **Git Integrator / Git Publisher:** integration versus routine publication.
@@ -56,7 +58,7 @@ repository's instructions. Platform discovery and format conversion belong in th
 
 ## Conditional coverage
 
-All 27 skills are referenced by at least one agent, either in its skill list or conditional
+All 28 skills are referenced by at least one agent, either in its skill list or conditional
 completion guidance. These references select methods only when needed:
 
 - **Document Writer:** `handoff-document` for requested pause/resume notes, and `research`

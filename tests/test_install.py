@@ -49,10 +49,10 @@ class InstallTests(unittest.TestCase):
                     skills = (self.project if local else self.user) / '.agents/skills'
                     for copy in (False, False, True, True, False):
                         self.run_install(*args, *(['--copy'] if copy else []))
-                        self.assertEqual(27, len(list(skills.glob('*/SKILL.md'))))
+                        self.assertEqual(len(list((ROOT / 'skills').glob('*/SKILL.md'))), len(list(skills.glob('*/SKILL.md'))))
                         self.assertEqual(not copy, (skills / 'coding').is_symlink())
                         self.assertFalse((skills / 'coding/coding').exists())
-                        self.assertEqual(14, len(list((base / 'agents').iterdir())))
+                        self.assertEqual(len(list((ROOT / 'agents').glob('*.agent.md'))), len(list((base / 'agents').iterdir())))
                         self.assertTrue((base / 'llm-config/templates/commit-message/git-p4-commit-message-template.txt').is_file())
                     # Source files remain untouched after copying over symlinks.
                     self.assertTrue((ROOT / 'skills/coding/SKILL.md').is_file())
@@ -120,6 +120,29 @@ class InstallTests(unittest.TestCase):
         self.run_install('--opencode')
         self.assertTrue((self.root / 'custom-opencode/agents/cpp-engineer.md').is_file())
         self.assertTrue((self.root / 'xdg/opencode/AGENTS.md').is_file())
+
+    def test_paper_reviewer_deployment_preserves_config_and_migrates_legacy(self):
+        base = self.user / '.codex'
+        base.mkdir()
+        config = base / 'config.toml'
+        config.write_text('[mcp_servers.zotero.env]\nZOTERO_LOCAL = "true"\n')
+        before = config.read_bytes()
+        legacy = base / 'skills/paper-review'
+        shutil.copytree(ROOT / 'skills/paper-review', legacy)
+        self.run_install('--codex', '--copy')
+        agent_path = base / 'agents/paper-reviewer.toml'
+        agent = tomllib.loads(agent_path.read_text())
+        installed_skill = self.user / '.agents/skills/paper-review/SKILL.md'
+        self.assertIn(str(installed_skill), agent['developer_instructions'])
+        self.assertEqual((ROOT / 'skills/paper-review/SKILL.md').read_bytes(), installed_skill.read_bytes())
+        self.assertNotIn('sandbox_mode', agent)
+        self.assertNotIn('model', agent)
+        self.assertFalse(legacy.exists())
+        self.assertEqual(before, config.read_bytes())
+        generated = agent_path.read_bytes()
+        self.run_install('--codex', '--copy')
+        self.assertEqual(generated, agent_path.read_bytes())
+        self.assertEqual(before, config.read_bytes())
 
     def test_source_parent_symlink_is_never_modified(self):
         linked = self.project / 'source-link'
