@@ -43,6 +43,84 @@ class InstallFixture:
 
 
 class InstallTests(InstallFixture, unittest.TestCase):
+    def test_resource_access_opt_in_reinstall_copy_and_revoke(self):
+        os.environ['OPENCODE_CONFIG_DIR'] = str(self.root / 'custom opencode')
+        base = self.root / 'custom opencode'
+        base.mkdir()
+        config = base / 'opencode.jsonc'
+        original = '// preserve comments\n{"mcp": {}, "permission": "ask"}\n'
+        config.write_text(original)
+        plugin = base / 'plugins/llm-config-resource-access.js'
+        self.run_install('--opencode')
+        self.assertFalse(plugin.exists())
+        self.run_install('--opencode', '--allow-resource-access')
+        first = plugin.read_text()
+        self.assertIn(str(ROOT / 'templates'), first)
+        self.assertIn(str(base / 'llm-config/templates'), first)
+        self.run_install('--opencode')
+        self.assertEqual(first, plugin.read_text())
+        self.run_install('--opencode', '--copy')
+        self.assertNotIn(str(ROOT / 'templates'), plugin.read_text())
+        self.assertIn(str(base / 'llm-config/templates'), plugin.read_text())
+        unrelated = base / 'plugins/other.js'
+        unrelated.write_text('// keep')
+        self.run_install('--opencode', '--remove-resource-access')
+        self.assertFalse(plugin.exists())
+        self.run_install('--opencode')
+        self.assertFalse(plugin.exists())
+        self.assertEqual('// keep', unrelated.read_text())
+        self.assertEqual(original, config.read_text())
+
+    def test_resource_access_conflict_fails_before_install(self):
+        plugin = self.project / '.opencode/plugins/llm-config-resource-access.js'
+        plugin.parent.mkdir(parents=True)
+        plugin.write_text('// user file')
+        with self.assertRaisesRegex(ValueError, 'untracked destination'):
+            self.run_install('--opencode-project', self.project, '--allow-resource-access')
+        self.assertFalse((self.project / '.agents').exists())
+        self.assertEqual('// user file', plugin.read_text())
+
+    def test_resource_access_rejects_other_clients(self):
+        for product in ('copilot', 'codex'):
+            with self.assertRaisesRegex(ValueError, 'only to OpenCode'):
+                self.run_install('--' + product, '--allow-resource-access')
+
+    @unittest.skipUnless(shutil.which('node'), 'Node.js required to exercise OpenCode plugin hook')
+    def test_resource_access_hook_preserves_other_permissions(self):
+        self.run_install('--opencode-project', self.project, '--allow-resource-access')
+        plugin = self.project / '.opencode/plugins/llm-config-resource-access.js'
+        # Import as an ES module independently of the host package's module type.
+        module = self.root / 'plugin.mjs'
+        module.write_text(plugin.read_text())
+        script = '''
+import plugin from MODULE;
+import assert from 'node:assert/strict';
+const hook = await plugin();
+for (const initial of ['ask', 'deny', undefined, {
+  read: {'/unrelated/*': 'deny', '*': 'ask'},
+  edit: 'deny', bash: 'ask', external_directory: 'ask'
+}]) {
+  const config = {permission: initial, mcp: {example: {enabled: false}}};
+  hook.config(config);
+  const once = JSON.stringify(config);
+  hook.config(config);
+  assert.equal(JSON.stringify(config), once);
+  assert.equal(config.permission.read[RESOURCE + '/*'], 'allow');
+  assert.equal(config.permission.external_directory[RESOURCE + '/*'], 'allow');
+  assert.deepEqual(config.mcp, {example: {enabled: false}});
+  if (typeof initial === 'string') assert.equal(config.permission['*'], initial);
+  if (typeof initial === 'object') {
+    assert.equal(config.permission.read['/unrelated/*'], 'deny');
+    assert.equal(config.permission.edit, 'deny');
+    assert.equal(config.permission.bash, 'ask');
+  }
+}
+'''.replace('MODULE', json.dumps(module.as_uri())).replace(
+            'RESOURCE', json.dumps(str(self.project / '.opencode/llm-config/templates')))
+        result = subprocess.run([shutil.which('node'), '--input-type=module', '-e', script],
+                                capture_output=True, text=True)
+        self.assertEqual(0, result.returncode, result.stderr)
+
     def test_all_targets_repeat_and_mode_switch(self):
         for product in ('codex', 'copilot', 'opencode'):
             for local in (False, True):

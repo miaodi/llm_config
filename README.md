@@ -22,6 +22,54 @@ Choose one target per invocation:
 ./setup.sh --codex --copy
 ```
 
+### Persistent access to shared resources
+
+For OpenCode, opt in once to reading installed instruction resources from any project:
+
+```bash
+./setup.sh --opencode --allow-resource-access
+```
+
+Setup installs `plugins/llm-config-resource-access.js` in the OpenCode config
+directory. Its native `config` hook merges narrow `external_directory` and `read`
+grants into the loaded configuration, including for the primary agent. It covers
+owned skill directories and installed templates, docs, source-agent examples, and
+memory; symlink installs also cover their source directories. It adds no edit or
+shell grants. These explicit resource grants take precedence over matching global
+rules; agent-specific permissions still apply. `--pure` disables the plugin.
+
+The choice is remembered in `.llm-config-access.json` and refreshed on normal
+reinstalls, including changes between symlink and `--copy` mode. To revoke it:
+
+```bash
+./setup.sh --opencode --remove-resource-access
+```
+
+Both flags also work with `--opencode-project PATH` for project-scoped access.
+Restart OpenCode after either change. The plugin is separately installer-owned;
+existing `opencode.json` / `opencode.jsonc` files, comments, MCP settings, and
+unrelated plugins are preserved. This avoids rewriting personal JSONC files.
+
+Other clients use different controls:
+
+- **Codex:** normal read-only/workspace-write sandboxes support file reads. Setup
+  preserves `config.toml` and does not add writable roots just to read templates.
+  Custom restricted profiles or administrator policy may require separate setup.
+- **Copilot CLI:** directory approvals are saved per project in
+  `permissions-config.json`; grant the installed resource directory with `/add-dir`
+  and save the approval when offered. For symlink installs, also allow the source
+  resource directories if requested. Setup does not synthesize global approvals
+  in this project-keyed, CLI-managed file.
+- **Copilot in VS Code:** CLI directory approvals do not configure VS Code.
+  Workspace/tool approval settings remain controlled by the editor.
+
+Sources: [OpenCode plugins](https://opencode.ai/docs/plugins/),
+[OpenCode permissions](https://opencode.ai/docs/permissions/),
+[Codex sandboxing](https://learn.chatgpt.com/docs/sandboxing), and
+[Copilot CLI permissions storage](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-config-dir-reference#permissions-configjson).
+
+### Installation layout
+
 `--project PATH` remains an alias for `--copilot-project PATH`. Project directories
 must already exist. Bare `./setup.sh` prints an error instead of selecting a target.
 
@@ -102,6 +150,8 @@ concurrent installers are not supported.
 Restart the client after installation. Generated agents and managed instructions
 contain installation-specific paths; rerun setup after relocating a copied install.
 The installer does not edit model, provider, authentication, or project trust settings.
+The opt-in OpenCode resource-access plugin described above adds only scoped read
+and external-directory permissions at startup.
 
 ### Product configuration
 
@@ -150,6 +200,10 @@ memory so their behavior does not depend on personal instruction discovery.
 ```bash
 python3 -m unittest discover -s tests -v
 ```
+
+Node.js is optional for the plugin-hook unit test; that test is skipped if Node.js
+is unavailable. After opting in, use `opencode debug agent build` from another
+project to verify the effective template `read` and `external_directory` grants.
 
 In a new Codex session, use `/skills` to inspect skill discovery. Ask Codex to use
 one of the installed skills explicitly, for example `$coding`. Custom agents are

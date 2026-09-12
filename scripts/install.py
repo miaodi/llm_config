@@ -183,6 +183,11 @@ def arguments():
             flags.append('--project')
         target.add_argument(*flags, type=Path, metavar='PATH')
     parser.add_argument('--copy', action='store_true', help='Copy sources instead of symlinking')
+    access = parser.add_mutually_exclusive_group()
+    access.add_argument('--allow-resource-access', action='store_true',
+                        help='Enable persistent OpenCode resource read access (remembered on reinstall)')
+    access.add_argument('--remove-resource-access', action='store_true',
+                        help='Remove the managed OpenCode resource-access plugin')
     return parser.parse_args()
 
 
@@ -191,6 +196,8 @@ def main():
     product = next(p for p in ('copilot', 'codex', 'opencode')
                    if getattr(args, p) or getattr(args, p + '_project'))
     project = getattr(args, product + '_project')
+    if (args.allow_resource_access or args.remove_resource_access) and product != 'opencode':
+        raise ValueError('resource-access flags apply only to OpenCode; see README for other clients')
     if project is not None:
         project = project.resolve(strict=True)
         if not project.is_dir():
@@ -213,6 +220,26 @@ def main():
     agents = base / 'agents'
     resources = base / 'llm-config'
     install = Installer(base, args.copy)
+    access_owner = None
+    access_plans = []
+    if product == 'opencode' and (args.allow_resource_access or args.remove_resource_access
+                                 or (base / '.llm-config-access.json').exists()):
+        if (base / 'plugins').is_symlink():
+            raise ValueError(f'{base / "plugins"}: managed plugin directory must not be a symlink')
+        access_owner = Ownership(base / '.llm-config-access.json', {
+            'plugins': (base / 'plugins', r'llm-config-resource-access\.js')})
+        if not args.remove_resource_access and (args.allow_resource_access or access_owner.previous['plugins']):
+            # Enumerate owned skill folders; do not trust unrelated shared skills.
+            roots = [skills / p.name for p in sorted((SOURCE / 'skills').iterdir()) if (p / 'SKILL.md').is_file()]
+            roots += [resources / folder for folder in ('templates', 'docs', 'agents', 'memory')]
+            if not args.copy:
+                roots += [SOURCE / folder for folder in ('skills', 'templates', 'docs', 'agents', 'memory')]
+            patterns = list(dict.fromkeys(pattern for root in roots
+                                         for pattern in (str(root), str(root) + '/*')))
+            template = (SOURCE / 'templates/opencode-resource-access.js').read_text()
+            rendered_access = template.replace('__RESOURCE_PATTERNS__', json.dumps(patterns, indent=2))
+            access_plans = [('plugins', 'llm-config-resource-access.js', None, rendered_access)]
+        access_owner.prepare(access_plans)
 
     # Validate all sources before installing anything.
     for folder in ('skills', 'agents', 'templates', 'docs', 'memory'):
@@ -298,10 +325,16 @@ def main():
     # Record intended ownership before writing destinations; no backups are made.
     owned_product.claim(install)
     owned_skills.claim(install)
+    if access_owner is not None:
+        access_owner.claim(install)
     for owner, plans in ((owned_product, product_plans), (owned_skills, skill_plans)):
         for group, name, src, text in plans:
             install.install(owner.groups[group][0] / name, src=src, text=text)
     install.install(instructions, text=instruction_text)
+    if access_owner is not None:
+        for group, name, src, text in access_plans:
+            install.install(access_owner.groups[group][0] / name, text=text)
+        access_owner.finish(install)
     removed = owned_product.finish(install) + owned_skills.finish(install)
 
     # Remove matching legacy entries. Untracked modified copies remain unrelated
@@ -324,6 +357,8 @@ def main():
     print(f'Generated {len(agent_sources)} {product} agents in {agents}')
     print(f'Updated managed instructions in {instructions}')
     print(f'Removed {removed} obsolete managed entries; no backups created.')
+    if access_owner is not None:
+        print('OpenCode resource-access plugin: ' + ('enabled' if access_plans else 'disabled'))
     print('Restart the client. Re-run this command after changing agents, memory, or copied sources.')
 
 
