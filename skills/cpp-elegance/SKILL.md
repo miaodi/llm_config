@@ -27,5 +27,24 @@ Own C++ interfaces, invariants, and maintainability. `coding` owns defect invest
 - Apply cohesion and substitutability principles to concrete problems, not as a mandate for
   classes, extension points, or dependency-injection frameworks.
 
+## Data flow and workspace
+
+- Distinguish borrowed dependencies, configuration, persistent algorithmic state, caches,
+  and temporary workspace. Keep members for a clear lifetime or reuse requirement, with
+  explicit update points and cache-invalidation rules.
+- Make computed outputs visible through return values or explicit output parameters/views.
+  Avoid helper calls that silently populate a member consumed by another call; owning a
+  reusable buffer does not require hiding writes to it.
+- Prefer local values when reuse is unnecessary. When reusing storage, use cohesive named
+  workspaces and overwrite scratch before reading it. Pass only the dependencies a helper
+  needs; passing the entire implementation object merely relocates hidden coupling.
+- Choose failure guarantees at the appropriate boundary. Preserve accepted state and
+  transactional updates, but allow disposable evaluation outputs to be unspecified on
+  failure when callers discard them. Do not add staging buffers and final copies solely
+  to preserve scratch outputs without a required contract.
+- Respect aliasing, borrowed views, and storage identity when removing temporaries; swapping
+  buffers is not a general replacement for writing into caller-owned storage. Keep runtime
+  performance claims subject to measurement through `cpp-performance`.
+
 Respect existing include-guard conventions. Verify representative callers and supported build
 configurations; explain behavioral/API changes and meaningful tradeoffs rather than listing features used.
