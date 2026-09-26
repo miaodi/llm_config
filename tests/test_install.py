@@ -81,7 +81,7 @@ class InstallTests(InstallFixture, unittest.TestCase):
         self.assertEqual('// user file', plugin.read_text())
 
     def test_resource_access_rejects_other_clients(self):
-        for product in ('copilot', 'codex'):
+        for product in ('copilot', 'codex', 'claude'):
             with self.assertRaisesRegex(ValueError, 'only to OpenCode'):
                 self.run_install('--' + product, '--allow-resource-access')
 
@@ -122,13 +122,15 @@ for (const initial of ['ask', 'deny', undefined, {
         self.assertEqual(0, result.returncode, result.stderr)
 
     def test_all_targets_repeat_and_mode_switch(self):
-        for product in ('codex', 'copilot', 'opencode'):
+        for product in ('codex', 'copilot', 'opencode', 'claude'):
             for local in (False, True):
                 with self.subTest(product=product, local=local):
                     args = [f'--{product}-project', self.project] if local else [f'--{product}']
-                    base = ((self.project / {'codex': '.codex', 'copilot': '.github', 'opencode': '.opencode'}[product]) if local
-                            else self.user / {'codex': '.codex', 'copilot': '.copilot', 'opencode': '.config/opencode'}[product])
-                    skills = (self.project if local else self.user) / '.agents/skills'
+                    base = ((self.project / {'codex': '.codex', 'copilot': '.github', 'opencode': '.opencode',
+                                             'claude': '.claude'}[product]) if local
+                            else self.user / {'codex': '.codex', 'copilot': '.copilot', 'opencode': '.config/opencode',
+                                              'claude': '.claude'}[product])
+                    skills = (base if product == 'claude' else (self.project if local else self.user) / '.agents') / 'skills'
                     for copy in (False, False, True, True, False):
                         self.run_install(*args, *(['--copy'] if copy else []))
                         self.assertEqual(len(list((ROOT / 'skills').glob('*/SKILL.md'))), len(list(skills.glob('*/SKILL.md'))))
@@ -159,6 +161,19 @@ for (const initial of ['ask', 'deny', undefined, {
         self.run_install('--copilot-project', self.project)
         generated = yaml.safe_load((self.project / '.github/agents/p4-reviewer.agent.md').read_text().split('---', 2)[1])
         self.assertEqual(p4['tools'], generated['tools'])
+        self.run_install('--claude-project', self.project)
+        for path in (self.project / '.claude/agents').glob('*.md'):
+            meta, body = installer.frontmatter(path)
+            self.assertEqual(path.stem, meta['name'])
+            self.assertNotIn(str(self.project / '.agents/skills'), body)
+        meta, body = installer.frontmatter(self.project / '.claude/agents/p4-reviewer.md')
+        tools = meta['tools'].split(', ')
+        self.assertTrue({'Skill', 'Read', 'Grep', 'Bash'} <= set(tools))
+        self.assertNotIn('Edit', tools)
+        self.assertIn(str(self.project / '.claude/skills'), body)
+        meta, _ = installer.frontmatter(self.project / '.claude/agents/paper-reviewer.md')
+        self.assertNotIn('tools', meta)
+        self.assertIn(installer.BEGIN, (self.project / 'CLAUDE.md').read_text())
 
     def test_instructions_preserve_unmanaged_text(self):
         dest = self.project / 'AGENTS.md'
@@ -202,6 +217,11 @@ for (const initial of ['ask', 'deny', undefined, {
         self.run_install('--opencode')
         self.assertTrue((self.root / 'custom-opencode/agents/cpp-engineer.md').is_file())
         self.assertTrue((self.root / 'xdg/opencode/AGENTS.md').is_file())
+        os.environ['CLAUDE_CONFIG_DIR'] = str(self.root / 'custom-claude')
+        self.run_install('--claude')
+        for path in ('agents/cpp-engineer.md', 'skills/coding/SKILL.md', 'CLAUDE.md'):
+            self.assertTrue((self.root / 'custom-claude' / path).is_file())
+        self.assertFalse((self.user / '.claude').exists())
 
     def test_paper_reviewer_deployment_preserves_config_and_migrates_legacy(self):
         base = self.user / '.codex'
@@ -414,7 +434,8 @@ class ExtendedInstallTests(InstallFixture, unittest.TestCase):
         for product, base, extension in [
                 ('codex', self.user / '.codex', '.toml'),
                 ('copilot', self.user / '.copilot', '.agent.md'),
-                ('opencode', self.user / '.config/opencode', '.md')]:
+                ('opencode', self.user / '.config/opencode', '.md'),
+                ('claude', self.user / '.claude', '.md')]:
             with self.subTest(product=product):
                 self.run_install('--' + product, '--copy')
                 old = base / ('agents/example' + extension)
@@ -448,6 +469,20 @@ class ExtendedInstallTests(InstallFixture, unittest.TestCase):
         self.run_install('--codex')
         self.assertFalse(old.exists())
         data = json.loads((self.user / '.agents/.llm-config-skills.json').read_text())
+        self.assertEqual([], data['entries']['skills'])
+
+    def test_claude_skills_have_separate_root_and_manifest(self):
+        self.run_install('--claude')
+        claude_skill = self.user / '.claude/skills/example'
+        self.assertTrue(claude_skill.is_symlink())
+        self.assertFalse((self.user / '.agents').exists())
+        self.run_install('--codex')
+        shutil.rmtree(self.source / 'skills/example')
+        self.run_install('--codex')
+        self.assertTrue(claude_skill.is_symlink())
+        self.run_install('--claude')
+        self.assertFalse(claude_skill.is_symlink())
+        data = json.loads((self.user / '.claude/.llm-config-skills.json').read_text())
         self.assertEqual([], data['entries']['skills'])
 
     def test_modified_owned_files_are_replaced_without_backups(self):

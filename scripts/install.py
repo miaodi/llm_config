@@ -173,10 +173,23 @@ class Ownership:
         return removed
 
 
+CAPABILITIES = ('read', 'edit', 'search', 'execute', 'web')
+CLAUDE_TOOLS = {'read': ['Read'], 'edit': ['Edit', 'Write', 'NotebookEdit'], 'search': ['Glob', 'Grep'],
+                'execute': ['Bash'], 'web': ['WebFetch', 'WebSearch']}
+
+
+def claude_tools(capabilities):
+    """Fully capable agents inherit all tools, including MCP; others get an allowlist."""
+    if set(capabilities) == set(CAPABILITIES):
+        return {}
+    return {'tools': ', '.join(['Skill'] + [tool for capability in CAPABILITIES if capability in capabilities
+                                            for tool in CLAUDE_TOOLS[capability]])}
+
+
 def arguments():
     parser = argparse.ArgumentParser(description=__doc__)
     target = parser.add_mutually_exclusive_group(required=True)
-    for product in ('copilot', 'codex', 'opencode'):
+    for product in ('copilot', 'codex', 'opencode', 'claude'):
         target.add_argument('--' + product, action='store_true')
         flags = ['--' + product + '-project']
         if product == 'copilot':
@@ -193,7 +206,7 @@ def arguments():
 
 def main():
     args = arguments()
-    product = next(p for p in ('copilot', 'codex', 'opencode')
+    product = next(p for p in ('copilot', 'codex', 'opencode', 'claude')
                    if getattr(args, p) or getattr(args, p + '_project'))
     project = getattr(args, product + '_project')
     if (args.allow_resource_access or args.remove_resource_access) and product != 'opencode':
@@ -211,6 +224,11 @@ def main():
         base = project / '.github' if project else Path(os.environ.get('COPILOT_HOME', user_home / '.copilot')).resolve()
         skills = (project if project else user_home) / '.agents/skills'
         instructions = base / 'copilot-instructions.md'
+    elif product == 'claude':
+        base = project / '.claude' if project else Path(os.environ.get('CLAUDE_CONFIG_DIR', user_home / '.claude')).resolve()
+        # Claude Code does not discover the shared .agents/skills root.
+        skills = base / 'skills'
+        instructions = project / 'CLAUDE.md' if project else base / 'CLAUDE.md'
     else:
         config_home = Path(os.environ.get('XDG_CONFIG_HOME', user_home / '.config'))
         base = project / '.opencode' if project else Path(os.environ.get('OPENCODE_CONFIG_DIR', config_home / 'opencode')).resolve()
@@ -256,7 +274,7 @@ def main():
     parsed = [(p, *frontmatter(p)) for p in agent_sources]
     for path, meta, _ in parsed:
         if (not isinstance(meta.get('tools'), list)
-                or any(not isinstance(tool, str) or tool not in {'read', 'edit', 'search', 'execute', 'web'}
+                or any(not isinstance(tool, str) or tool not in CAPABILITIES
                        for tool in meta['tools'])):
             raise ValueError(f'{path}: unsupported tool list')
 
@@ -287,7 +305,10 @@ def main():
             tomllib.loads(rendered)
             output = agents / (name + '.toml')
         else:
-            if product == 'opencode':
+            if product == 'claude':
+                meta = {'name': name, 'description': meta['description'],
+                        **claude_tools(meta['tools'])}
+            elif product == 'opencode':
                 # Preserve the source allowlist, including denial of unlisted MCP tools.
                 # Skills and questions are needed to use these instruction-only agents.
                 permission = {'*': 'deny', 'skill': 'allow', 'question': 'allow',
@@ -304,14 +325,14 @@ def main():
                         permission.update(dict.fromkeys(keys, action))
                 meta = {'description': meta['description'], 'mode': 'subagent', 'permission': permission}
             rendered = '---\n' + yaml.safe_dump(meta, sort_keys=False, allow_unicode=True) + '---\n\n' + body
-            output = agents / (name + ('.md' if product == 'opencode' else '.agent.md'))
+            output = agents / (name + ('.agent.md' if product == 'copilot' else '.md'))
         product_plans.append(('agents', output.name, None, rendered))
-    # Shared skills have one manifest regardless of which product installs them.
+    # Each skills root has one manifest shared by every product installing there.
     # Refuse redirected managed roots before loading ownership or touching files.
     for directory in (base / 'agents', resources, skills.parent, skills, base / 'skills'):
         if directory.is_symlink():
             raise ValueError(f'{directory}: managed directory must not be a symlink')
-    suffix = {'codex': r'\.toml', 'copilot': r'\.agent\.md', 'opencode': r'\.md'}[product]
+    suffix = {'codex': r'\.toml', 'copilot': r'\.agent\.md', 'opencode': r'\.md', 'claude': r'\.md'}[product]
     owned_product = Ownership(base / '.llm-config-manifest.json', {
         'agents': (agents, r'[a-z0-9]+(?:-[a-z0-9]+)*' + suffix),
         'resources': (resources, r'(?:templates|docs|agents|memory)'),

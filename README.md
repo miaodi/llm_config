@@ -14,10 +14,12 @@ Choose one target per invocation:
 ./setup.sh --copilot
 ./setup.sh --codex
 ./setup.sh --opencode
+./setup.sh --claude
 
 ./setup.sh --copilot-project /path/to/repo
 ./setup.sh --codex-project /path/to/repo
 ./setup.sh --opencode-project /path/to/repo
+./setup.sh --claude-project /path/to/repo
 
 ./setup.sh --codex --copy
 ```
@@ -60,6 +62,10 @@ Other clients use different controls:
   and save the approval when offered. For symlink installs, also allow the source
   resource directories if requested. Setup does not synthesize global approvals
   in this project-keyed, CLI-managed file.
+- **Claude Code:** reads outside the working directory may prompt. Grant the
+  installed `llm-config/` resource directory with `/add-dir`, or add it to
+  `permissions.additionalDirectories` in `settings.json`. Setup does not edit
+  `settings.json`. Skills load through the native skill catalog without extra grants.
 - **Copilot in VS Code:** CLI directory approvals do not configure VS Code.
   Workspace/tool approval settings remain controlled by the editor.
 
@@ -78,10 +84,13 @@ must already exist. Bare `./setup.sh` prints an error instead of selecting a tar
 | Copilot | `~/.agents/skills/` | `~/.copilot/agents/*.agent.md` | `.agents/skills/` | `.github/agents/*.agent.md` |
 | Codex | `~/.agents/skills/` | `~/.codex/agents/*.toml` | `.agents/skills/` | `.codex/agents/*.toml` |
 | OpenCode | `~/.agents/skills/` | `~/.config/opencode/agents/*.md` | `.agents/skills/` | `.opencode/agents/*.md` |
+| Claude Code | `~/.claude/skills/` | `~/.claude/agents/*.md` | `.claude/skills/` | `.claude/agents/*.md` |
 
 Each skill lives in `<name>/SKILL.md` with YAML `name` and `description` fields.
-No extra skill registration is required. All three targets use the shared `.agents/skills`
-location so installing several clients does not create duplicate skill entries. Matching
+No extra skill registration is required. Copilot, Codex, and OpenCode use the shared
+`.agents/skills` location so installing several clients does not create duplicate skill
+entries. Claude Code does not discover `.agents/skills`, so it gets its own skills root
+with a separate manifest at `<claude-config>/.llm-config-skills.json`. Matching
 legacy product-specific skills are removed from discovery; untracked modified copies
 are retained with a warning for manual reconciliation.
 
@@ -173,6 +182,14 @@ and external-directory permissions at startup.
   tools are denied; read/search and skill loading are allowed when applicable;
   edit, terminal, and web capabilities require approval when included. User-level
   OpenCode permission rules are therefore supplemented by these explicit agent rules.
+- **Claude Code:** `CLAUDE_CONFIG_DIR` overrides the personal directory (default
+  `~/.claude`); skills, agents, and resources all live under it. Generated subagents use
+  the source file stem as `name`. Source tools map to Claude tools (`read`→`Read`,
+  `edit`→`Edit, Write, NotebookEdit`, `search`→`Glob, Grep`, `execute`→`Bash`,
+  `web`→`WebFetch, WebSearch`) plus `Skill`. Agents with all five capabilities omit
+  `tools` and inherit every tool, including MCP servers such as Zotero; restricted
+  agents get an explicit allowlist that excludes MCP tools. The installer never edits
+  `settings.json`.
 
 ### Shared instructions and resources
 
@@ -188,6 +205,7 @@ lookup guidance in the following instruction files:
 | Codex | `$CODEX_HOME/AGENTS.md` (default `~/.codex/AGENTS.md`) | `AGENTS.md` |
 | Copilot CLI | `~/.copilot/copilot-instructions.md` (or `$COPILOT_HOME`) | `.github/copilot-instructions.md` |
 | OpenCode | `${XDG_CONFIG_HOME:-$HOME/.config}/opencode/AGENTS.md` | `AGENTS.md` |
+| Claude Code | `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md` | `CLAUDE.md` |
 
 Existing text outside the managed block is preserved. Edit shared preferences in
 `memory/` and rerun setup; edits inside the managed block are regenerated. Global
@@ -209,6 +227,8 @@ In a new Codex session, use `/skills` to inspect skill discovery. Ask Codex to u
 one of the installed skills explicitly, for example `$coding`. Custom agents are
 separate from skills and require a client version supporting native TOML agents.
 For OpenCode, use `opencode debug skill` and `opencode debug agent p4-reviewer`.
+For Claude Code, use `/agents` to list generated subagents and ask Claude to use a
+skill by name, for example the `coding` skill.
 
 References: [Codex skills](https://learn.chatgpt.com/docs/build-skills),
 [Codex agents](https://learn.chatgpt.com/docs/agent-configuration/subagents),

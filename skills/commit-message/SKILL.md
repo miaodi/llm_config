@@ -16,6 +16,7 @@ Before drafting a message, identify which product is running this skill:
 - Codex: use the Codex paths only.
 - Copilot: use the Copilot paths only.
 - OpenCode: use the OpenCode paths only.
+- Claude Code: use the Claude Code paths only.
 
 Do not search every product's install location. Product-specific lookup keeps the
 template selection predictable and avoids unnecessary filesystem scans.
@@ -37,6 +38,11 @@ product:
 
 1. `.opencode/llm-config/templates/commit-message/git-p4-commit-message-template.txt` in the repository root.
 2. `${OPENCODE_CONFIG_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/opencode}/llm-config/templates/commit-message/git-p4-commit-message-template.txt`.
+
+### Claude Code
+
+1. `.claude/llm-config/templates/commit-message/git-p4-commit-message-template.txt` in the repository root.
+2. `${CLAUDE_CONFIG_DIR:-${HOME}/.claude}/llm-config/templates/commit-message/git-p4-commit-message-template.txt`.
 
 If the product cannot be determined from the active agent environment, ask the
 user which product is invoking the skill instead of searching all product paths.
