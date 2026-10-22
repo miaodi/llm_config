@@ -81,7 +81,7 @@ class InstallTests(InstallFixture, unittest.TestCase):
         self.assertEqual('// user file', plugin.read_text())
 
     def test_resource_access_rejects_other_clients(self):
-        for product in ('copilot', 'codex', 'claude'):
+        for product in ('copilot', 'codex', 'claude', 'agy'):
             with self.assertRaisesRegex(ValueError, 'only to OpenCode'):
                 self.run_install('--' + product, '--allow-resource-access')
 
@@ -222,6 +222,11 @@ for (const initial of ['ask', 'deny', undefined, {
         for path in ('agents/cpp-engineer.md', 'skills/coding/SKILL.md', 'CLAUDE.md'):
             self.assertTrue((self.root / 'custom-claude' / path).is_file())
         self.assertFalse((self.user / '.claude').exists())
+        os.environ['AGY_CONFIG_DIR'] = str(self.root / 'custom-agy')
+        self.run_install('--agy')
+        self.assertTrue((self.root / 'custom-agy/agents/cpp-engineer.md').is_file())
+        self.assertTrue((self.root / 'custom-agy/AGENTS.md').is_file())
+        self.assertTrue((self.user / '.agents/skills/coding/SKILL.md').is_file())
 
     def test_paper_reviewer_deployment_preserves_config_and_migrates_legacy(self):
         base = self.user / '.codex'
@@ -269,6 +274,35 @@ for (const initial of ['ask', 'deny', undefined, {
         self.assertEqual('version two', (dst / 'SKILL.md').read_text())
         self.assertFalse((dst / 'source').exists())
         self.assertFalse((self.project / '.llm-config-backups').exists())
+
+    def test_agy_global_and_project_deployment(self):
+        # Global install
+        self.run_install('--agy')
+        global_base = self.user / '.gemini/config'
+        self.assertTrue((global_base / 'agents/cpp-engineer.md').is_file())
+        self.assertTrue((global_base / 'AGENTS.md').is_file())
+        self.assertTrue((self.user / '.agents/skills/coding/SKILL.md').is_file())
+        meta, body = installer.frontmatter(global_base / 'agents/cpp-engineer.md')
+        self.assertEqual('cpp-engineer', meta['name'])
+        self.assertIn('description', meta)
+        self.assertIn(str(self.user / '.agents/skills'), body)
+        self.assertIn(installer.BEGIN, (global_base / 'AGENTS.md').read_text())
+
+        # Project install
+        self.run_install('--agy-project', self.project)
+        self.assertTrue((self.project / '.agents/agents/cpp-engineer.md').is_file())
+        self.assertTrue((self.project / 'AGENTS.md').is_file())
+        self.assertTrue((self.project / '.agents/skills/coding/SKILL.md').is_file())
+        meta_proj, body_proj = installer.frontmatter(self.project / '.agents/agents/cpp-engineer.md')
+        self.assertEqual('cpp-engineer', meta_proj['name'])
+        self.assertIn(str(self.project / '.agents/skills'), body_proj)
+        self.assertIn(installer.BEGIN, (self.project / 'AGENTS.md').read_text())
+
+    def test_agy_antigravity_alias(self):
+        self.run_install('--antigravity')
+        self.assertTrue((self.user / '.gemini/config/agents/cpp-engineer.md').is_file())
+        self.run_install('--antigravity-project', self.project)
+        self.assertTrue((self.project / '.agents/agents/cpp-engineer.md').is_file())
 
 
 class ContentTests(unittest.TestCase):
@@ -435,7 +469,8 @@ class ExtendedInstallTests(InstallFixture, unittest.TestCase):
                 ('codex', self.user / '.codex', '.toml'),
                 ('copilot', self.user / '.copilot', '.agent.md'),
                 ('opencode', self.user / '.config/opencode', '.md'),
-                ('claude', self.user / '.claude', '.md')]:
+                ('claude', self.user / '.claude', '.md'),
+                ('agy', self.user / '.gemini/config', '.md')]:
             with self.subTest(product=product):
                 self.run_install('--' + product, '--copy')
                 old = base / ('agents/example' + extension)

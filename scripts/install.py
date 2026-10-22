@@ -189,12 +189,17 @@ def claude_tools(capabilities):
 def arguments():
     parser = argparse.ArgumentParser(description=__doc__)
     target = parser.add_mutually_exclusive_group(required=True)
-    for product in ('copilot', 'codex', 'opencode', 'claude'):
-        target.add_argument('--' + product, action='store_true')
-        flags = ['--' + product + '-project']
+    for product in ('copilot', 'codex', 'opencode', 'claude', 'agy'):
+        flags = ['--' + product]
+        if product == 'agy':
+            flags.append('--antigravity')
+        target.add_argument(*flags, action='store_true')
+        project_flags = ['--' + product + '-project']
         if product == 'copilot':
-            flags.append('--project')
-        target.add_argument(*flags, type=Path, metavar='PATH')
+            project_flags.append('--project')
+        elif product == 'agy':
+            project_flags.append('--antigravity-project')
+        target.add_argument(*project_flags, type=Path, metavar='PATH')
     parser.add_argument('--copy', action='store_true', help='Copy sources instead of symlinking')
     access = parser.add_mutually_exclusive_group()
     access.add_argument('--allow-resource-access', action='store_true',
@@ -206,7 +211,7 @@ def arguments():
 
 def main():
     args = arguments()
-    product = next(p for p in ('copilot', 'codex', 'opencode', 'claude')
+    product = next(p for p in ('copilot', 'codex', 'opencode', 'claude', 'agy')
                    if getattr(args, p) or getattr(args, p + '_project'))
     project = getattr(args, product + '_project')
     if (args.allow_resource_access or args.remove_resource_access) and product != 'opencode':
@@ -229,6 +234,11 @@ def main():
         # Claude Code does not discover the shared .agents/skills root.
         skills = base / 'skills'
         instructions = project / 'CLAUDE.md' if project else base / 'CLAUDE.md'
+    elif product == 'agy':
+        agy_env = os.environ.get('AGY_CONFIG_DIR') or os.environ.get('ANTIGRAVITY_CONFIG_DIR')
+        base = project / '.agents' if project else Path(agy_env if agy_env else user_home / '.gemini/config').resolve()
+        skills = (project if project else user_home) / '.agents/skills'
+        instructions = project / 'AGENTS.md' if project else base / 'AGENTS.md'
     else:
         config_home = Path(os.environ.get('XDG_CONFIG_HOME', user_home / '.config'))
         base = project / '.opencode' if project else Path(os.environ.get('OPENCODE_CONFIG_DIR', config_home / 'opencode')).resolve()
@@ -324,6 +334,8 @@ def main():
                         action = 'allow' if capability in ('read', 'search') else 'ask'
                         permission.update(dict.fromkeys(keys, action))
                 meta = {'description': meta['description'], 'mode': 'subagent', 'permission': permission}
+            elif product == 'agy':
+                meta = {'name': name, 'description': meta['description']}
             rendered = '---\n' + yaml.safe_dump(meta, sort_keys=False, allow_unicode=True) + '---\n\n' + body
             output = agents / (name + ('.agent.md' if product == 'copilot' else '.md'))
         product_plans.append(('agents', output.name, None, rendered))
@@ -332,7 +344,7 @@ def main():
     for directory in (base / 'agents', resources, skills.parent, skills, base / 'skills'):
         if directory.is_symlink():
             raise ValueError(f'{directory}: managed directory must not be a symlink')
-    suffix = {'codex': r'\.toml', 'copilot': r'\.agent\.md', 'opencode': r'\.md', 'claude': r'\.md'}[product]
+    suffix = {'codex': r'\.toml', 'copilot': r'\.agent\.md', 'opencode': r'\.md', 'claude': r'\.md', 'agy': r'\.md'}[product]
     owned_product = Ownership(base / '.llm-config-manifest.json', {
         'agents': (agents, r'[a-z0-9]+(?:-[a-z0-9]+)*' + suffix),
         'resources': (resources, r'(?:templates|docs|agents|memory)'),

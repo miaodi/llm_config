@@ -15,11 +15,13 @@ Choose one target per invocation:
 ./setup.sh --codex
 ./setup.sh --opencode
 ./setup.sh --claude
+./setup.sh --agy
 
 ./setup.sh --copilot-project /path/to/repo
 ./setup.sh --codex-project /path/to/repo
 ./setup.sh --opencode-project /path/to/repo
 ./setup.sh --claude-project /path/to/repo
+./setup.sh --agy-project /path/to/repo
 
 ./setup.sh --codex --copy
 ```
@@ -66,17 +68,23 @@ Other clients use different controls:
   installed `llm-config/` resource directory with `/add-dir`, or add it to
   `permissions.additionalDirectories` in `settings.json`. Setup does not edit
   `settings.json`. Skills load through the native skill catalog without extra grants.
+- **Antigravity (`agy`):** reads outside the workspace are controlled by
+  `~/.gemini/antigravity-cli/settings.json` under `permissions.allow` (e.g. `read_file(*)`).
+  Skills load through the shared `~/.agents/skills` root. Setup installs agents into
+  `~/.gemini/config/agents` and global rules into `~/.gemini/config/AGENTS.md`.
 - **Copilot in VS Code:** CLI directory approvals do not configure VS Code.
   Workspace/tool approval settings remain controlled by the editor.
 
 Sources: [OpenCode plugins](https://opencode.ai/docs/plugins/),
 [OpenCode permissions](https://opencode.ai/docs/permissions/),
-[Codex sandboxing](https://learn.chatgpt.com/docs/sandboxing), and
+[Codex sandboxing](https://learn.chatgpt.com/docs/sandboxing),
+[Antigravity CLI](https://antigravity.google/docs/cli/reference), and
 [Copilot CLI permissions storage](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-config-dir-reference#permissions-configjson).
 
 ### Installation layout
 
-`--project PATH` remains an alias for `--copilot-project PATH`. Project directories
+`--project PATH` remains an alias for `--copilot-project PATH`. `--antigravity` and
+`--antigravity-project` are aliases for `--agy` and `--agy-project`. Project directories
 must already exist. Bare `./setup.sh` prints an error instead of selecting a target.
 
 | Product | Personal skills | Personal agents | Project skills | Project agents |
@@ -85,11 +93,12 @@ must already exist. Bare `./setup.sh` prints an error instead of selecting a tar
 | Codex | `~/.agents/skills/` | `~/.codex/agents/*.toml` | `.agents/skills/` | `.codex/agents/*.toml` |
 | OpenCode | `~/.agents/skills/` | `~/.config/opencode/agents/*.md` | `.agents/skills/` | `.opencode/agents/*.md` |
 | Claude Code | `~/.claude/skills/` | `~/.claude/agents/*.md` | `.claude/skills/` | `.claude/agents/*.md` |
+| Antigravity (`agy`) | `~/.agents/skills/` | `~/.gemini/config/agents/*.md` | `.agents/skills/` | `.agents/agents/*.md` |
 
 Each skill lives in `<name>/SKILL.md` with YAML `name` and `description` fields.
-No extra skill registration is required. Copilot, Codex, and OpenCode use the shared
-`.agents/skills` location so installing several clients does not create duplicate skill
-entries. Claude Code does not discover `.agents/skills`, so it gets its own skills root
+No extra skill registration is required. Copilot, Codex, OpenCode, and Antigravity use
+the shared `.agents/skills` location so installing several clients does not create duplicate
+skill entries. Claude Code does not discover `.agents/skills`, so it gets its own skills root
 with a separate manifest at `<claude-config>/.llm-config-skills.json`. Matching
 legacy product-specific skills are removed from discovery; untracked modified copies
 are retained with a warning for manual reconciliation.
